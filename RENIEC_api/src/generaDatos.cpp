@@ -9,6 +9,8 @@
 #include <fstream>
 #include <random>
 #include <boost/serialization/vector.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/zlib.hpp>
 
 using namespace std;
 
@@ -16,7 +18,7 @@ DataManager::DataManager() = default;
 
 void DataManager::generarCiudadano(size_t count){
     random_device rd;
-    mt19937 gen((rd));
+    mt19937 gen(rd());
     uniform_int_distribution<uint32_t> dist(10000000,99999999);
     
     citizens.clear();
@@ -38,7 +40,11 @@ void DataManager::generarCiudadano(size_t count){
 
 void DataManager::guardarArchivo(const string &filename){
     ofstream ofs(filename, ios::binary);
-    boost::archive::binary_oarchive oa(ofs);
+    boost::iostreams::filtering_ostream out;
+    out.push(boost::iostreams::zlib_compressor()); // Aplica compresión usando zlib
+    out.push(ofs);
+    
+    boost::archive::binary_oarchive oa(out);
     oa << citizens;
 }
 
@@ -64,7 +70,8 @@ void DataManager::guardarEnChunks(const string &filename, size_t chunkSize){
 
 uint32_t DataManager::generateRandomDNI(){
     random_device rd;
-    std::uniform_int_distribution<uint32_t> dist(10000000, 99999999);
+    mt19937 gen(rd());
+    uniform_int_distribution<uint32_t> dist(10000000, 99999999);
     return dist(rd);
 }
 
@@ -72,11 +79,11 @@ string DataManager::generateRandomNombre(size_t length){
     static const char charset[] =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             "abcdefghijklmnopqrstuvwxyz";
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dist(0, sizeof(charset) - 2);
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dist(0, sizeof(charset) - 2);
 
-        std::string result;
+        string result;
         result.reserve(length);
         for (size_t i = 0; i < length; ++i) {
             result += charset[dist(gen)];

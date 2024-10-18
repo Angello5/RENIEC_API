@@ -10,11 +10,11 @@
 using namespace std;
 // Constructor definition
 
-CitizenData::CitizenData(uint32_t dni, string name, string nationality, string birthPlace,
-                         string address, string phone, string email, string civilStatus)
-: dni(dni), nombre(move(nombre)), nacionalidad(move(nacionalidad)),
-birthPlace(move(birthPlace)), direccion(move(direccion)), telefono(move(telefono)),
-correo(move(correo)), estadoCivil(move(estadoCivil)) {}
+CitizenData::CitizenData(uint32_t dni, string nombre, string nacionalidad, string birthPlace,
+                         string direccion, string telefono, string correo, string estadoCivil)
+: dni(dni), nombre(nombre), nacionalidad(nacionalidad),
+birthPlace(birthPlace), direccion(direccion), telefono(telefono),
+correo(correo), estadoCivil(estadoCivil) {}
 
 // Getter definitions
 uint32_t CitizenData::getDNI() const {
