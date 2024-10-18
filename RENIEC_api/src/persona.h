@@ -4,15 +4,13 @@
 //
 //  Created by Angello Llerena on 18/10/24.
 //
-
+#pragma  once
 #include <cstdint>
 #include <string>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/string.hpp>
-//#include <boost/serialization/uint32_t.hpp>
 
 using namespace std;
-using namespace boost::serialization::access;
 
 class CitizenData{
 public:
@@ -29,6 +27,7 @@ public:
     string getEstadoCivil() const;
     
 private:
+    friend class boost::serialization::access;
     template<class Archive>
     
     void serialize(Archive &ar, const unsigned int version){

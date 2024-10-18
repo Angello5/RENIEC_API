@@ -4,7 +4,7 @@
 //
 //  Created by Angello Llerena on 18/10/24.
 //
-
+#pragma once
 #include "persona.h"
 #include <vector>
 #include <string>
