@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		DB216D522CC2F6B200EF5987 /* libboost_serialization.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		DB216D542CC2F6E900EF5987 /* libboost_serialization.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */; };
+		DB216D572CC2FE1200EF5987 /* libz.1.3.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB216D552CC2FE0D00EF5987 /* libz.1.3.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DB216D5D2CC3022900EF5987 /* libboost_iostreams.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DB216D5C2CC3022900EF5987 /* libboost_iostreams.dylib */; };
+		DB216D5E2CC3024700EF5987 /* libboost_iostreams.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB216D5C2CC3022900EF5987 /* libboost_iostreams.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DB216D602CC303BA00EF5987 /* liblzma.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DB216D5F2CC303BA00EF5987 /* liblzma.5.dylib */; };
+		DB216D612CC303BF00EF5987 /* liblzma.5.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB216D5F2CC303BA00EF5987 /* liblzma.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DB216D632CC3055A00EF5987 /* libzstd.1.5.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DB216D622CC3055A00EF5987 /* libzstd.1.5.6.dylib */; };
+		DB216D642CC3055F00EF5987 /* libzstd.1.5.6.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB216D622CC3055A00EF5987 /* libzstd.1.5.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,11 +30,15 @@
 		};
 		DB216D532CC2F6B200EF5987 /* Embed Libraries */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				DB216D5E2CC3024700EF5987 /* libboost_iostreams.dylib in Embed Libraries */,
+				DB216D572CC2FE1200EF5987 /* libz.1.3.1.dylib in Embed Libraries */,
+				DB216D642CC3055F00EF5987 /* libzstd.1.5.6.dylib in Embed Libraries */,
 				DB216D522CC2F6B200EF5987 /* libboost_serialization.dylib in Embed Libraries */,
+				DB216D612CC303BF00EF5987 /* liblzma.5.dylib in Embed Libraries */,
 			);
 			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -37,6 +48,10 @@
 /* Begin PBXFileReference section */
 		DB216D132CC2B7BA00EF5987 /* RENIEC_api */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = RENIEC_api; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_serialization.dylib; path = ../../../../../opt/homebrew/Cellar/boost/1.85.0/lib/libboost_serialization.dylib; sourceTree = "<group>"; };
+		DB216D552CC2FE0D00EF5987 /* libz.1.3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.3.1.dylib; path = ../../../../../opt/homebrew/Cellar/zlib/1.3.1/lib/libz.1.3.1.dylib; sourceTree = "<group>"; };
+		DB216D5C2CC3022900EF5987 /* libboost_iostreams.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_iostreams.dylib; path = ../../../../../opt/homebrew/Cellar/boost/1.85.0/lib/libboost_iostreams.dylib; sourceTree = "<group>"; };
+		DB216D5F2CC303BA00EF5987 /* liblzma.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblzma.5.dylib; path = ../../../../../opt/homebrew/Cellar/xz/5.6.3/lib/liblzma.5.dylib; sourceTree = "<group>"; };
+		DB216D622CC3055A00EF5987 /* libzstd.1.5.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libzstd.1.5.6.dylib; path = ../../../../../opt/homebrew/Cellar/zstd/1.5.6/lib/libzstd.1.5.6.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +67,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB216D632CC3055A00EF5987 /* libzstd.1.5.6.dylib in Frameworks */,
+				DB216D5D2CC3022900EF5987 /* libboost_iostreams.dylib in Frameworks */,
+				DB216D602CC303BA00EF5987 /* liblzma.5.dylib in Frameworks */,
 				DB216D542CC2F6E900EF5987 /* libboost_serialization.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -79,6 +97,10 @@
 		DB216D4E2CC2F0EC00EF5987 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DB216D622CC3055A00EF5987 /* libzstd.1.5.6.dylib */,
+				DB216D5F2CC303BA00EF5987 /* liblzma.5.dylib */,
+				DB216D5C2CC3022900EF5987 /* libboost_iostreams.dylib */,
+				DB216D552CC2FE0D00EF5987 /* libz.1.3.1.dylib */,
 				DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */,
 			);
 			name = Frameworks;
@@ -277,11 +299,13 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				HEADER_SEARCH_PATHS = /opt/homebrew/include;
 				LD_RUNPATH_SEARCH_PATHS = /opt/homebrew/lib;
-				LIBRARY_SEARCH_PATHS = (
-					/opt/homebrew/lib,
-					/opt/homebrew/Cellar/boost/1.85.0/lib,
+				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
+				OTHER_LDFLAGS = (
+					"-lboost_serialization",
+					"-lboost_iostreams",
+					"-lz",
+					"-lzstd",
 				);
-				OTHER_LDFLAGS = "-lboost_serialization";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -294,11 +318,13 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				HEADER_SEARCH_PATHS = /opt/homebrew/include;
 				LD_RUNPATH_SEARCH_PATHS = /opt/homebrew/lib;
-				LIBRARY_SEARCH_PATHS = (
-					/opt/homebrew/lib,
-					/opt/homebrew/Cellar/boost/1.85.0/lib,
+				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
+				OTHER_LDFLAGS = (
+					"-lboost_serialization",
+					"-lboost_iostreams",
+					"-lz",
+					"-lzstd",
 				);
-				OTHER_LDFLAGS = "-lboost_serialization";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

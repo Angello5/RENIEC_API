@@ -21,6 +21,10 @@ public:
     void guardarArchivo(const string &filename);
     void cargarArchivo(const string &filename);
     void guardarEnChunks(const string &filename, size_t chunkSize);
+    const std::vector<CitizenData>& getCitizens() const {
+        return citizens;
+    }
+
     
 private:
     vector<CitizenData> citizens;

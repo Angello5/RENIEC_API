@@ -16,6 +16,7 @@ class CitizenData{
 public:
     CitizenData() = default;
     CitizenData(uint32_t dni, string name, string nacionalidad, string birthPlace, string direccion, string telefono, string correo, string estadoCivil);
+    
     //Getters
     uint32_t getDNI()const;
     string getNombre() const;
