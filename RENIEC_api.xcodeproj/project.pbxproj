@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DB1819002CE21A3F00377FAA /* libboost_system.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DB1818FF2CE21A3F00377FAA /* libboost_system.dylib */; };
+		DB1819012CE21A4E00377FAA /* libboost_system.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB1818FF2CE21A3F00377FAA /* libboost_system.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		DB216D522CC2F6B200EF5987 /* libboost_serialization.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		DB216D542CC2F6E900EF5987 /* libboost_serialization.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */; };
 		DB216D572CC2FE1200EF5987 /* libz.1.3.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = DB216D552CC2FE0D00EF5987 /* libz.1.3.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -39,6 +41,7 @@
 				DB216D642CC3055F00EF5987 /* libzstd.1.5.6.dylib in Embed Libraries */,
 				DB216D522CC2F6B200EF5987 /* libboost_serialization.dylib in Embed Libraries */,
 				DB216D612CC303BF00EF5987 /* liblzma.5.dylib in Embed Libraries */,
+				DB1819012CE21A4E00377FAA /* libboost_system.dylib in Embed Libraries */,
 			);
 			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -46,6 +49,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DB1818FF2CE21A3F00377FAA /* libboost_system.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_system.dylib; path = ../../../../../opt/homebrew/Cellar/boost/1.85.0/lib/libboost_system.dylib; sourceTree = "<group>"; };
 		DB216D132CC2B7BA00EF5987 /* RENIEC_api */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = RENIEC_api; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_serialization.dylib; path = ../../../../../opt/homebrew/Cellar/boost/1.85.0/lib/libboost_serialization.dylib; sourceTree = "<group>"; };
 		DB216D552CC2FE0D00EF5987 /* libz.1.3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.3.1.dylib; path = ../../../../../opt/homebrew/Cellar/zlib/1.3.1/lib/libz.1.3.1.dylib; sourceTree = "<group>"; };
@@ -69,6 +73,7 @@
 			files = (
 				DB216D632CC3055A00EF5987 /* libzstd.1.5.6.dylib in Frameworks */,
 				DB216D5D2CC3022900EF5987 /* libboost_iostreams.dylib in Frameworks */,
+				DB1819002CE21A3F00377FAA /* libboost_system.dylib in Frameworks */,
 				DB216D602CC303BA00EF5987 /* liblzma.5.dylib in Frameworks */,
 				DB216D542CC2F6E900EF5987 /* libboost_serialization.dylib in Frameworks */,
 			);
@@ -102,6 +107,7 @@
 				DB216D5C2CC3022900EF5987 /* libboost_iostreams.dylib */,
 				DB216D552CC2FE0D00EF5987 /* libz.1.3.1.dylib */,
 				DB216D4F2CC2F0EC00EF5987 /* libboost_serialization.dylib */,
+				DB1818FF2CE21A3F00377FAA /* libboost_system.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -139,7 +145,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					DB216D122CC2B7BA00EF5987 = {
 						CreatedOnToolsVersion = 16.0;
@@ -210,6 +216,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -271,6 +278,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -295,11 +303,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = XY6CQC79KD;
 				ENABLE_HARDENED_RUNTIME = YES;
 				HEADER_SEARCH_PATHS = /opt/homebrew/include;
 				LD_RUNPATH_SEARCH_PATHS = /opt/homebrew/lib;
-				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/homebrew/lib,
+					/opt/homebrew/Cellar/boost/1.85.0/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-lboost_serialization",
 					"-lboost_iostreams",
@@ -314,11 +326,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = XY6CQC79KD;
 				ENABLE_HARDENED_RUNTIME = YES;
 				HEADER_SEARCH_PATHS = /opt/homebrew/include;
 				LD_RUNPATH_SEARCH_PATHS = /opt/homebrew/lib;
-				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/homebrew/lib,
+					/opt/homebrew/Cellar/boost/1.85.0/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-lboost_serialization",
 					"-lboost_iostreams",
