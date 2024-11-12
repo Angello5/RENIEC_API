@@ -39,13 +39,11 @@ const std::string FILE_PATH = "/Users/angellollerena/Documents/EDA-trabajofinal/
 */
 
 const vector<string> names = {
-    "Juan", "María", "Pedro", "Ana", "Luis",
-       "Lucía", "Carlos", "Elena", "José", "Sofía"
+    "Juan", "María", "Pedro", "Ana", "Luis"
 };
 
 const vector<string> surnames = {
-    "García", "Martínez", "Rodríguez", "López", "González",
-        "Pérez", "Sánchez", "Ramírez", "Torres", "Flores"
+    "García", "Martínez", "Rodríguez", "López", "González"
 };
 
 struct NationalityBirthplace {
@@ -58,11 +56,8 @@ const vector<NationalityBirthplace> natPlaces = {
     {"Chilena", "Santiago"},
     {"Argentina", "Buenos Aires"},
     {"Colombiana", "Bogotá"},
-    {"Mexicana", "Ciudad de México"},
     {"Española", "Madrid"},
     {"Estadounidense", "Nueva York"},
-    {"Canadiense", "Toronto"},
-    {"Brasileña", "São Paulo"},
     {"Italiana", "Roma"}
 };
 
@@ -103,7 +98,6 @@ uint32_t generarDni(uint32_t index) {
 
 // Generador de números de Telefono
 string generarPhone() {
-    // El primer dígito siempre es '9'
     string phone = "9";
     for (int i = 0; i < 8; ++i) {
         // Se añaden los siguientes 8 dígitos
