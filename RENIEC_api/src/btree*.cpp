@@ -13,7 +13,7 @@ BStarTree::BStarTree(BufferPool& buffer_pool)
         Page root;
         root.is_leaf = true;
         root.num_keys = 0;
-        root_page_id = buffer_pool.page_manager.allocatePage();
+        root_page_id = buffer_pool.allocatePage();
         buffer_pool.writePage(root_page_id, root);
 }
 
@@ -27,7 +27,7 @@ void BStarTree::insert(uint32_t key, size_t record_offset) {
 
     if (root.num_keys == MAX_KEYS) {
         // La raíz está llena, debemos dividirla
-        size_t new_root_page_id = buffer_pool.page_manager.allocatePage();
+        size_t new_root_page_id = buffer_pool.allocatePage();
         Page new_root;
         new_root.is_leaf = false;
         new_root.num_keys = 0;
@@ -118,7 +118,7 @@ void BStarTree::splitChild(size_t parent_page_id, size_t child_index, size_t chi
     buffer_pool.readPage(parent_page_id, parent);
     buffer_pool.readPage(child_page_id, child);
 
-    size_t sibling_page_id = buffer_pool.page_manager.allocatePage();
+    size_t sibling_page_id = buffer_pool.allocatePage();
     sibling.is_leaf = child.is_leaf;
     sibling.num_keys = MAX_KEYS / 2;
 

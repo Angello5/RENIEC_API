@@ -70,3 +70,8 @@ void BufferPool::evictPage() {
     }
 }
 
+size_t BufferPool::allocatePage() {
+    return page_manager.allocatePage();
+}
+
+

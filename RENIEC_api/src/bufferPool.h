@@ -21,7 +21,7 @@ public:
     void readPage(size_t page_id, Page& page);
     void writePage(size_t page_id, const Page& page);
     void flush();
-
+    size_t allocatePage();
 private:
     size_t capacity;
     PageManager& page_manager;
