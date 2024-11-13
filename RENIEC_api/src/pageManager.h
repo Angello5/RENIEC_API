@@ -10,7 +10,7 @@
 #include <fstream>
 #include <string>
 #include <set>
-#include "Page.h"
+#include "page.h"
 
 class PageManager {
 public:

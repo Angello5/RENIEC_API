@@ -58,7 +58,7 @@ void BufferPool::flush() {
 
 void BufferPool::evictPage() {
     //encuentra la pagina menos recientemente utilizada
-    size_t lru_page_id;
+    size_t lru_page_id= 0;
     auto it = buffer.find(lru_page_id);
     if (it != buffer.end()) {
         if (it->second.is_dirty) {

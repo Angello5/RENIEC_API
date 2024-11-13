@@ -1,17 +1,13 @@
 #include "persona.h"
-//#include "CuckooHashTable.h"
-//#include "MappedFile.h"
+#include "btree*.h"
+#include "bufferPool.h"
+#include "dataManager.h"
+#include "btree*.h"
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <chrono>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filter/zlib.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/version.hpp>
-
 #include <cstdlib>
 #include <ctime>
 #include <string>
@@ -27,23 +23,22 @@ const uint32_t DNI_MIN = 10000000;
 const uint32_t DNI_MAX = 77999999;
 const uint32_t TOTAL_DNIS = DNI_MAX - DNI_MIN + 1;
 const uint32_t PRIME = 100000007;
+const size_t BLOCK_SIZE = 1 *1024 * 1024;   //1mb
+const size_t AVERAGE_RECORD_SIZE = 200;
+const size_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
+const string DATA_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/user.bin";
+const string INDEX_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/block_index.bin";
 
 // Cambia la ruta del archivo según sea necesario
 //const std::string FILE_PATH = "E:/USIL/SEXTO CICLO (2024-1)/Análisis y Diseño de Algoritmos/Trabajo Final/Archivos";
-const std::string FILE_PATH = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/user.bin";
-
-/*
-    FUNCIONES QUE GENERAN LOS REGISTROS
-        * Primero las leen de archivos txt para luego
-          generarlos e insertarlos en un archivo binario
-*/
+//const std::string FILE_PATH = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/user.bin";
 
 const vector<string> names = {
-    "Juan", "María", "Pedro", "Ana", "Luis"
+    "Juan", "María", "Pedro", "Luis"
 };
 
 const vector<string> surnames = {
-    "García", "Martínez", "Rodríguez", "López", "González"
+    "García", "Martínez", "Rodríguez"
 };
 
 struct NationalityBirthplace {
@@ -76,21 +71,18 @@ const vector<AddressData> addresses = {
     {"La Libertad", "Trujillo", "Trujillo", "Huanchaco"},
     {"Junín", "Huancayo", "Huancayo", "El Tambo"},
     {"Loreto", "Maynas", "Iquitos", "Belén"},
-    {"Puno", "Puno", "Puno", "Juliaca"},
-    {"Ica", "Ica", "Ica", "Paracas"},
-    {"Tumbes", "Tumbes", "Tumbes", "Zorritos"}
 };
 
 const vector<string> marital_statuses = {
-    "Soltero(a)", "Casado(a)", "Viudo(a)", "Divorciado(a)", "Separado(a)", "Conviviente"
+    "Soltero(a)", "Casado(a)", "Viudo(a)", "Divorciado(a)"
 };
 
-uint32_t permuteDNI(uint32_t index){
+uint32_t permuteDNI(size_t index){
     uint64_t permuted = (static_cast<uint64_t>(index) * 48271) % PRIME;
     return static_cast<uint32_t>(permuted);
 }
 // Función para generar un DNI aleatorio
-uint32_t generarDni(uint32_t index) {
+uint32_t generarDni(size_t index) {
     uint32_t permuted = permuteDNI(index);
     uint32_t dni = DNI_MIN + (permuted % TOTAL_DNIS);
     return dni;
@@ -105,94 +97,29 @@ string generarPhone() {
     }
     return phone;
 }
-/*
-vector<string> leerArchivo(const string& nombreArchivo) {
-    vector<string> lineas;
-    ifstream archivo(nombreArchivo);
-    string linea;
-    while (getline(archivo, linea)) {
-        lineas.push_back(linea);
-    }
-    return lineas;
-}
- */
-// Función para eliminar espacios en blanco de una cadena
-string removeSpaces(const string& str) {
-    string result;
-    for (char c : str) {
-        if (!isspace(c)) {
-            result += c;
-        }
-    }
-    return result;
-}
 
-// Función para convertir una cadena a minúsculas
-string toLowerCase(const string& str) {
-    string result;
-    for (char c : str) {
-        result += tolower(c);
-    }
-    return result;
-}
 // Generador de números de emails
 string generarEmail(const string& name) {
-    vector<string> dominios = { "gmail.com", "yahoo.com", "outlook.com", "icloud.com", "@usil.pe" };
+    vector<string> dominios = { "gmail.com","outlook.com", "@usil.pe" };
     string dominio = dominios[rand() % dominios.size()];
-    string cleanName = removeSpaces(name);
-    string lowerCaseName = toLowerCase(cleanName);
-    return lowerCaseName + "@" + dominio;
+    return  + "@" + dominio;
 }
 
 
 // Generador de números del Estado Civil
 string generarMarital_status() {
-    vector<std::string> marital_status = { "Soltero(a)", "Casado(a)", "Viudo(a)", "Divorciado(a)", "Separado(a)", "Conviviente" };
-    return marital_status[rand() % marital_status.size()];
+    return marital_statuses[rand() % marital_statuses.size()];
 }
 
-
-// Funcion que permite seleccionar un registro de manera aleatoria
-
-Address selAddressRandom(const std::vector<std::string>& direcciones) {
-    std::string address = direcciones[rand() % direcciones.size()];
-    Address ad;
-    size_t pos = 0;
-
-    pos = address.find(',');
-    ad.departamento = address.substr(0,pos);
-    address.erase(0, pos + 1);
-    
-    pos = address.find(',');
-    ad.provincia = address.substr(0,pos);
-    address.erase(0, pos + 1);
-    
-    pos = address.find(',');
-    ad.ciudad= address.substr(0, pos);
-    address.erase(0, pos + 1);
-    
-    ad.distrito = address;
-    
-    return ad;
-    
-}
-pair<string, string> selNatBPRandom(const vector<string>& natPlace) {
-    string nl = natPlace[rand() % natPlace.size()];
-    size_t pos = nl.find(',');
-    string nacionalidad = nl.substr(0, pos);
-    string lugarNacimiento = nl.substr(pos + 1);
-    return { nacionalidad, lugarNacimiento };
-}
-
-// Función para generar una persona o ciudadano de manera aleatoria
-Person generarPersona(uint32_t index) {
+// Función para generar una persona
+Person generarPersona(size_t index) {
     Person persona;
     persona.dni = generarDni(index);
     persona.phone = generarPhone();
     persona.name = names[rand() % names.size()];
     persona.surname = surnames[rand() % surnames.size()];
     persona.email = generarEmail(persona.name);
-    persona.marital_status = marital_statuses[rand() % marital_statuses.size()];
+    persona.marital_status = generarMarital_status();
 
     const auto& natPlace = natPlaces[rand() % natPlaces.size()];
     persona.birthplace.nationality = natPlace.nationality;
@@ -207,34 +134,29 @@ Person generarPersona(uint32_t index) {
     return persona;
 }
 
+// Función para generar datos masivos y cargarlos en el sistema
+void generateAndLoadData(BStarTree& tree, DataManager& dataManager, size_t num_personas) {
+    cout << "Generando y cargando datos..." << endl;
+    auto start = chrono::high_resolution_clock::now();
 
+    for (size_t i = 0; i < num_personas; ++i) {
+        Person persona = generarPersona(i);
+        size_t block_number, record_offset_within_block;
+        dataManager.writePerson(persona, block_number, record_offset_within_block);
+        tree.insert(persona.dni, block_number, record_offset_within_block);
 
-void saveData(const vector<Person>& personas, const std::string& filename) {
-    std::ofstream ofs(filename, std::ios::binary);
-    boost::iostreams::filtering_stream<boost::iostreams::output> fos;
-    fos.push(boost::iostreams::zlib_compressor());
-    fos.push(ofs);
-    boost::archive::binary_oarchive oa(fos);
-    oa << personas;
-}
-
-void loadData(std::vector<Person>& personas, const string& filename) {
-    ifstream ifs(filename, ios::binary);
-    if (!ifs.is_open()) {
-            std::cerr << "Error: No se pudo abrir el archivo " << filename << std::endl;
-            return;
+        // Mostrar progreso cada 100,000 registros
+        if ((i + 1) % 100000 == 0) {
+            cout << "Progreso: " << (i + 1) << " registros generados." << endl;
         }
+    }
 
-    boost::iostreams::filtering_stream<boost::iostreams::input> fis;
-    fis.push(boost::iostreams::zlib_decompressor());
-    fis.push(ifs);
-    boost::archive::binary_iarchive ia(fis);
-    try {
-            ia >> personas;
-        } catch (const boost::archive::archive_exception& e) {
-            std::cerr << "Error al leer datos del archivo: " << e.what() << std::endl;
-        }
+    // Guardar el árbol B* si es persistente (opcional)
+    // ...
 
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> duration = end - start;
+    cout << "Generación y carga completadas en " << duration.count() << " segundos.\n";
 }
 
 void printUser(const Person* persona) {
@@ -257,7 +179,7 @@ void printUser(const Person* persona) {
     }
 }
 
-/*void insertUser(CuckooHashTable& hashTable, std::vector<Person>& personas) {
+void insertUser(BStarTree& btree, DataManager& dataManager) {
     Person persona = {};
     cout << "Ingresa DNI: ";
     cin >> persona.dni;
@@ -296,20 +218,60 @@ void printUser(const Person* persona) {
     cout << "Ingresa estado Civil: ";
     std::getline(cin, persona.marital_status);
     
-    size_t memory_position = personas.size();
-    personas.push_back(persona);
     auto start = chrono::high_resolution_clock::now();
-    hashTable.insert(persona.dni, memory_position);
-    //saveData(personas, FILE_PATH); // Usa la ruta definida
+    size_t block_number, record_offset_within_block;
+    dataManager.writePerson(persona, block_number, record_offset_within_block);
+    btree.insert(persona.dni, block_number, record_offset_within_block);
 
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> duration = end - start;
     cout << "Usuario ingresado correctamente.\n" << endl;
     cout << "Tiempo en insertar un nuevo usuario:  " << duration.count();
 }
-*/
+
+void searchUser(BStarTree& tree, DataManager& dataManager) {
+    uint32_t dni;
+    cout << "Ingresa DNI a buscar: ";
+    cin >> dni;
+
+    size_t block_number, record_offset_within_block;
+    if (tree.search(dni, block_number, record_offset_within_block)) {
+        Person persona;
+        if (dataManager.readPerson(block_number, record_offset_within_block, persona)) {
+            if (!persona.is_deleted) {
+                printUser(&persona);
+            } else {
+                cout << "Usuario ha sido eliminado.\n";
+            }
+        } else {
+            cout << "Error al leer el registro.\n";
+        }
+    } else {
+        cout << "Usuario no encontrado.\n";
+    }
+}
+
+void removeUser(BStarTree& tree, DataManager& dataManager) {
+    uint32_t dni;
+    cout << "Ingresa DNI a eliminar: ";
+    cin >> dni;
+
+    size_t block_number, record_offset_within_block;
+    if (tree.search(dni, block_number, record_offset_within_block)) {
+        Person persona;
+        if (dataManager.readPerson(block_number, record_offset_within_block, persona)) {
+            persona.is_deleted = true;
+            dataManager.updatePerson(block_number, record_offset_within_block, persona);
+            cout << "Usuario eliminado correctamente.\n";
+        } else {
+            cout << "Error al leer el registro.\n";
+        }
+    } else {
+        cout << "Usuario no encontrado.\n";
+    }
+}
 void imprimirPrimerosRegistros(const vector<Person>& personas) {
-    auto start = chrono::high_resolution_clock::now();  // Se inicia la medición del tiempo
+    auto start = chrono::high_resolution_clock::now();
 
     cout << "\n=== Primeros 10 Registros ===" << endl;
 
@@ -339,9 +301,10 @@ void imprimirPrimerosRegistros(const vector<Person>& personas) {
     cout << "Tiempo en mostrar los 10 primeros registros: " << duration.count() << " segundos\n";
 }
 
-bool filexiste(const string& filename){
-    ifstream file(filename);
-    return file.good();
+bool dataExiste() {
+    ifstream dataFile(DATA_FILENAME);
+    ifstream indexFile(INDEX_FILENAME);
+    return dataFile.good() && indexFile.good();
 }
 
 void mostrarMenu( ){
@@ -350,7 +313,6 @@ void mostrarMenu( ){
         <<"2. Buscar Usuario\n"
         <<"3. Eliminar Usuario\n"
         <<"4. Imprimir los primeros 10 registros\n"
-        <<"5. Guadar datos\n"
         <<"6. Exit\n"
         <<"Elige tu opcion: ";
 }
@@ -358,115 +320,55 @@ void mostrarMenu( ){
 int main() {
     try{
         srand(static_cast<unsigned int>(time(0)));
-        size_t num_personas = 33000000; // Use the declared variable
         
-        bool dataexiste = filexiste(FILE_PATH);
+        PageManager page_manager("tree_pages.bin");
+        BufferPool buffer_pool(100, page_manager);   //tamano 100 paginas
         
-        /*
-        vector<string> names = leerArchivo("/Users/angellollerena/Downloads/grupoadafinal/grupoadafinal/nombres.txt");
-        vector<string> surnames = leerArchivo("/Users/angellollerena/Downloads/grupoadafinal/grupoadafinal/apellidos.txt");
-        vector<string> natPlaces = leerArchivo("/Users/angellollerena/Downloads/grupoadafinal/grupoadafinal/nacionalidadLugarNac.txt");
-        vector<string> addresses = leerArchivo("/Users/angellollerena/Downloads/grupoadafinal/grupoadafinal/direcciones.txt");
-        */
-        // Generate data
-        vector<Person> personas;
+        BStarTree btree(buffer_pool);
         
-        if(dataexiste){
-            // Load data from file if exists
-            auto start = chrono::high_resolution_clock::now();
-            loadData(personas, FILE_PATH); // Usa la ruta definida
-            auto end = chrono::high_resolution_clock::now();
-            chrono:std::chrono::duration<double> duration= end - start;
-            cout << "Data cargada desde la tabla Cuckoo Hash Table en " << duration.count() << " segundos.\n";
+        DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
+        
+        size_t num_personas = 33000000; // para probar 1 millon
+        
+        if(!dataExiste()){
+            generateAndLoadData(btree, data_manager, num_personas);
         }else{
-            personas.reserve(num_personas);  // Reserve memory for the number of personas
-            for (uint32_t i = 0; i < num_personas; ++i) {
-                Person persona = generarPersona(i);
-                personas.push_back(persona);
-            }
-            auto start = chrono::high_resolution_clock::now();
-            saveData(personas, FILE_PATH); // Usa la ruta definida
-            auto end = chrono::high_resolution_clock::now();
-            chrono::duration<double> duration = end - start;
-            cout << "Generados y guardados en " << duration.count() << " segundos.\n";
+            cout<<"Los datos ya existen, Se carga desde los archivos. (arbol persistente(falta implementar))"<<endl;
         }
-        
-     /*   CuckooHashTable hashTable(61000000, personas);  // Double the size for optimal performance
-        
-        for (size_t i = 0; i < personas.size(); i++) {
-            if(!personas[i].is_deleted){
-                hashTable.insert(personas[i].dni, i);
-            }
-        }
-       */
-        // Map the file to memory (optional step)
-        //MappedFile mappedFile(FILE_PATH); // Usa la ruta definida
+
         int opcion;
         do {
             mostrarMenu();
             cin>>opcion;
             switch (opcion) {
                 case 1:{
-                    //insertUser(hashTable, personas);
+                    insertUser(btree,data_manager);
                     break;
                 }
                 case 2: {
-                    uint32_t dni;
-                    cout << "Ingresa DNI a buscar: ";
-                    cin >> dni;
-                    
-                    auto start = chrono::high_resolution_clock::now();
-                    //const Person* user_pos = hashTable.search(dni);
-                    auto end = chrono::high_resolution_clock::now();
-                    chrono::duration<double> duration = end - start;
-                    
-                   /* if (user_pos != nullptr) {
-                        printUser(user_pos);
-                    } else {
-                        cout << "Usuario no encontrado.\n";
-                    }
-                    
-                    cout << "Busqueda completa en: " << duration.count() << " segundos.\n";
-                    */
+                    searchUser(btree, data_manager);
                     break;
                 }
 
                 case 3: {
-                    uint32_t dni;
-                    cout << "Ingresa DNI a eliminar: ";
-                    cin >> dni;
-                    
-                    auto start = chrono::high_resolution_clock::now();
-                   /* if (hashTable.remove(dni)) {
-                        // No es necesario eliminarlo del vector 'personas'
-                        cout << "Usuario eliminado correctamente." << endl;
-                    } else {
-                        cout << "Usuario no encontrado." << endl;
-                    }
-                    auto end = chrono::high_resolution_clock::now();
-                    chrono::duration<double> duration = end - start;
-                    cout << "Eliminacion completa en " << duration.count() << " segundos.\n";
-                    */
+                    removeUser(btree, data_manager);
                     break;
                 }
 
                 case 4:
-                    imprimirPrimerosRegistros(personas);
+                    //imprimirPrimerosRegistros(personas);
                     break;
                 case 5:
-                    saveData(personas, FILE_PATH);
-                    cout<<"Datos guardados exitosamente";
-                case 6:
                     cout<<"Salida... \n"<<endl;
                     break;
                 default:
                     cout<<"Eleccion invalida, por favor intente de nuevo. \n";
                     break;
             }
-        } while (opcion != 6);
+        } while (opcion != 5);
         
-        saveData(personas, FILE_PATH);
- 
+        return 0;
+        
     }catch (const bad_alloc& e){
         cerr <<"Error de asignacion de memoria " << e.what() << endl;
         return EXIT_FAILURE;
@@ -474,5 +376,4 @@ int main() {
         cerr<< "Excepcion capturada en: "<<e.what()<<endl;
         return EXIT_FAILURE;
     }
-    return 0;
 }

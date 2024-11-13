@@ -21,9 +21,11 @@ BStarTree::~BStarTree() {
     buffer_pool.flush();
 }
 
-void BStarTree::insert(uint32_t key, size_t record_offset) {
+void BStarTree::insert(uint32_t key, size_t block_number, size_t record_offset_within_block) {
     Page root;
     buffer_pool.readPage(root_page_id, root);
+
+    IndexEntry entry(key, block_number, record_offset_within_block);
 
     if (root.num_keys == MAX_KEYS) {
         // La raíz está llena, debemos dividirla
@@ -38,28 +40,29 @@ void BStarTree::insert(uint32_t key, size_t record_offset) {
         root_page_id = new_root_page_id;
         buffer_pool.writePage(root_page_id, new_root);
 
-        insertNonFull(root_page_id, key, record_offset);
+        insertNonFull(root_page_id, entry);
     } else {
-        insertNonFull(root_page_id, key, record_offset);
+        insertNonFull(root_page_id, entry);
     }
 }
 
 
-bool BStarTree::search(uint32_t key, size_t& record_offset) {
+
+bool BStarTree::search(uint32_t key, size_t& block_number, size_t& record_offset_within_block) {
     size_t page_id = root_page_id;
     while (true) {
         Page page;
         buffer_pool.readPage(page_id, page);
 
         int i = 0;
-        while (i < page.num_keys && key > page.keys[i]) {
+        while (i < page.num_keys && key > page.entries[i].dni) {
             i++;
         }
 
-        if (i < page.num_keys && key == page.keys[i]) {
+        if (i < page.num_keys && key == page.entries[i].dni) {
             // Encontramos la clave
-            // Obtener el offset del registro
-            // record_offset = page.records[i];
+            block_number = page.entries[i].block_number;
+            record_offset_within_block = page.entries[i].record_offset_within_block;
             return true;
         }
 
@@ -76,26 +79,24 @@ void BStarTree::remove(uint32_t key) {
     // Implementación de remove
 }
 
-void BStarTree::insertNonFull(size_t page_id, uint32_t key, size_t record_offset) {
+void BStarTree::insertNonFull(size_t page_id, const IndexEntry& entry) {
     Page page;
     buffer_pool.readPage(page_id, page);
 
-    int i = page.num_keys - 1;
+    size_t i = page.num_keys - 1;
 
     if (page.is_leaf) {
-        // Mover claves para hacer espacio
-        while (i >= 0 && key < page.keys[i]) {
-            page.keys[i + 1] = page.keys[i];
+        // Mover entradas para hacer espacio
+        while (i >= 0 && entry.dni < page.entries[i].dni) {
+            page.entries[i + 1] = page.entries[i];
             i--;
         }
-        page.keys[i + 1] = key;
-        // Almacenar el puntero al registro (podrías necesitar un arreglo adicional)
-        // page.records[i + 1] = record_offset;
+        page.entries[i + 1] = entry;
         page.num_keys++;
         buffer_pool.writePage(page_id, page);
     } else {
         // Encontrar el hijo adecuado
-        while (i >= 0 && key < page.keys[i]) {
+        while (i >= 0 && entry.dni < page.entries[i].dni) {
             i--;
         }
         i++;
@@ -104,13 +105,14 @@ void BStarTree::insertNonFull(size_t page_id, uint32_t key, size_t record_offset
         if (child.num_keys == MAX_KEYS) {
             splitChild(page_id, i, page.children[i]);
             buffer_pool.readPage(page_id, page);
-            if (key > page.keys[i]) {
+            if (entry.dni > page.entries[i].dni) {
                 i++;
             }
         }
-        insertNonFull(page.children[i], key, record_offset);
+        insertNonFull(page.children[i], entry);
     }
 }
+
 
 
 void BStarTree::splitChild(size_t parent_page_id, size_t child_index, size_t child_page_id) {
@@ -120,28 +122,27 @@ void BStarTree::splitChild(size_t parent_page_id, size_t child_index, size_t chi
 
     size_t sibling_page_id = buffer_pool.allocatePage();
     sibling.is_leaf = child.is_leaf;
-    sibling.num_keys = MAX_KEYS / 2;
+    sibling.num_keys = MIN_KEYS; // Suponiendo que MIN_KEYS = MAX_KEYS / 2
 
-    // Mover la mitad de las claves al hermano
-    for (size_t j = 0; j < sibling.num_keys; j++) {
-        sibling.keys[j] = child.keys[j + MAX_KEYS / 2 + 1];
-        // Mover otros datos si es necesario
+    // Mover la mitad de las entradas al hermano
+    for (size_t j = 0; j < MIN_KEYS; j++) {
+        sibling.entries[j] = child.entries[j + MIN_KEYS + 1];
     }
 
     if (!child.is_leaf) {
-        for (size_t j = 0; j <= sibling.num_keys; j++) {
-            sibling.children[j] = child.children[j + MAX_KEYS / 2 + 1];
+        for (size_t j = 0; j <= MIN_KEYS; j++) {
+            sibling.children[j] = child.children[j + MIN_KEYS + 1];
         }
     }
 
-    child.num_keys = MAX_KEYS / 2;
+    child.num_keys = MIN_KEYS;
 
-    // Insertar la nueva clave en el padre
+    // Insertar la nueva entrada en el padre
     for (size_t j = parent.num_keys; j > child_index; j--) {
-        parent.keys[j] = parent.keys[j - 1];
+        parent.entries[j] = parent.entries[j - 1];
         parent.children[j + 1] = parent.children[j];
     }
-    parent.keys[child_index] = child.keys[MAX_KEYS / 2];
+    parent.entries[child_index] = child.entries[MIN_KEYS];
     parent.children[child_index + 1] = sibling_page_id;
     parent.num_keys++;
 
@@ -150,4 +151,5 @@ void BStarTree::splitChild(size_t parent_page_id, size_t child_index, size_t chi
     buffer_pool.writePage(sibling_page_id, sibling);
     buffer_pool.writePage(parent_page_id, parent);
 }
+
 
