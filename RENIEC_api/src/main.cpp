@@ -29,10 +29,6 @@ const size_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
 const string DATA_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/user.bin";
 const string INDEX_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/block_index.bin";
 
-// Cambia la ruta del archivo según sea necesario
-//const std::string FILE_PATH = "E:/USIL/SEXTO CICLO (2024-1)/Análisis y Diseño de Algoritmos/Trabajo Final/Archivos";
-//const std::string FILE_PATH = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/user.bin";
-
 const vector<string> names = {
     "Juan", "María", "Pedro", "Luis"
 };
@@ -145,8 +141,8 @@ void generateAndLoadData(BStarTree& tree, DataManager& dataManager, size_t num_p
         dataManager.writePerson(persona, block_number, record_offset_within_block);
         tree.insert(persona.dni, block_number, record_offset_within_block);
 
-        // Mostrar progreso cada 100,000 registros
-        if ((i + 1) % 100000 == 0) {
+        // Mostrar progreso cada 1 millon registros
+        if ((i + 1) % 1000000 == 0) {
             cout << "Progreso: " << (i + 1) << " registros generados." << endl;
         }
     }
@@ -315,7 +311,7 @@ void mostrarMenu( ){
         <<"2. Buscar Usuario\n"
         <<"3. Eliminar Usuario\n"
         <<"4. Imprimir los primeros 10 registros\n"
-        <<"6. Exit\n"
+        <<"5. Exit\n"
         <<"Elige tu opcion: ";
 }
 
@@ -323,7 +319,7 @@ int main() {
     try{
         srand(static_cast<unsigned int>(time(0)));
         
-        PageManager page_manager("tree_pages.bin");
+        PageManager page_manager("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/tree_pages.bin");
         BufferPool buffer_pool(100, page_manager);   //tamano 100 paginas
         
         BStarTree btree(buffer_pool);
@@ -367,7 +363,7 @@ int main() {
                     cout<<"Eleccion invalida, por favor intente de nuevo. \n";
                     break;
             }
-        } while (opcion != 5);
+        } while (opcion != 6);
         
         return 0;
         

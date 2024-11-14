@@ -11,34 +11,34 @@ using namespace std;
 
 BStarTree::BStarTree(BufferPool& buffer_pool)
     : buffer_pool(buffer_pool) {
-        std::ifstream root_file("btree_root.bin", std::ios::binary);
-        if (root_file.is_open()) {
-            root_file.read(reinterpret_cast<char*>(&root_page_id), sizeof(root_page_id));
-            root_file.close();
-
-            // Opcional: Verificar que el root_page_id es válido
-            // Podrías agregar lógica aquí para asegurarte de que el root_page_id es coherente
-        } else {
-            // Si el archivo no existe, crear un árbol nuevo
-            Page root;
-            root.is_leaf = true;
-            root.num_keys = 0;
-            root_page_id = buffer_pool.allocatePage();
-            buffer_pool.writePage(root_page_id, root);
-        }
+        // Intentar cargar el root_page_id desde el archivo
+            std::ifstream root_file("btree_root.bin", std::ios::binary);
+            if (root_file.is_open()) {
+                root_file.read(reinterpret_cast<char*>(&root_page_id), sizeof(root_page_id));
+                root_file.close();
+            } else {
+                // Si el archivo no existe, crear un árbol nuevo
+                Page root;
+                root.is_leaf = true;
+                root.num_keys = 0;
+                root_page_id = buffer_pool.allocatePage();
+                buffer_pool.writePage(root_page_id, root);
+            }
 }
 
 BStarTree::~BStarTree() {
+    // Guardar el root_page_id en un archivo
     std::ofstream root_file("btree_root.bin", std::ios::binary);
-        if (root_file.is_open()) {
-            root_file.write(reinterpret_cast<const char*>(&root_page_id), sizeof(root_page_id));
-            root_file.close();
-        } else {
-            cerr << "Error al abrir btree_root.bin para escribir.\n";
-        }
+    if (root_file.is_open()) {
+        root_file.write(reinterpret_cast<const char*>(&root_page_id), sizeof(root_page_id));
+        root_file.close();
+    } else {
+        std::cerr << "Error al abrir btree_root.bin para escribir.\n";
+    }
 
-        buffer_pool.flush();
+    buffer_pool.flush();
 }
+
 
 void BStarTree::insert(uint32_t key, size_t block_number, size_t record_offset_within_block) {
     Page root;
@@ -102,7 +102,7 @@ void BStarTree::insertNonFull(size_t page_id, const IndexEntry& entry) {
     Page page;
     buffer_pool.readPage(page_id, page);
 
-    size_t i = page.num_keys - 1;
+    int i = static_cast<int>(page.num_keys) - 1;
 
     if (page.is_leaf) {
         // Mover entradas para hacer espacio
