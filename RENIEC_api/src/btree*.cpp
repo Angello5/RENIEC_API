@@ -27,16 +27,18 @@ BStarTree::BStarTree(BufferPool& buffer_pool)
 }
 
 BStarTree::~BStarTree() {
-    // Guardar el root_page_id en un archivo
-    std::ofstream root_file("btree_root.bin", std::ios::binary);
-    if (root_file.is_open()) {
-        root_file.write(reinterpret_cast<const char*>(&root_page_id), sizeof(root_page_id));
-        root_file.close();
-    } else {
-        std::cerr << "Error al abrir btree_root.bin para escribir.\n";
-    }
+    std::cout << "Destruyendo BStarTree y guardando root_page_id..." << std::endl;
+        // Guardar el root_page_id en un archivo
+        std::ofstream root_file("btree_root.bin", std::ios::binary);
+        if (root_file.is_open()) {
+            root_file.write(reinterpret_cast<const char*>(&root_page_id), sizeof(root_page_id));
+            root_file.close();
+            std::cout << "root_page_id (" << root_page_id << ") guardado en btree_root.bin." << std::endl;
+        } else {
+            std::cerr << "Error al abrir btree_root.bin para escribir.\n";
+        }
 
-    buffer_pool.flush();
+        buffer_pool.flush();
 }
 
 

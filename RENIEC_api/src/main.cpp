@@ -330,6 +330,24 @@ int main() {
         
         if(!dataExiste()){
             generateAndLoadData(btree, data_manager, num_personas);
+            
+            //Prueba de busqueda
+            uint32_t dni_a_buscar = generarDni(0); // O el DNI del primer registro
+                size_t block_number, record_offset_within_block;
+                if (btree.search(dni_a_buscar, block_number, record_offset_within_block)) {
+                    Person persona;
+                    if (data_manager.readPerson(block_number, record_offset_within_block, persona)) {
+                        if (!persona.is_deleted) {
+                            printUser(&persona);
+                        } else {
+                            std::cout << "Usuario ha sido eliminado.\n";
+                        }
+                    } else {
+                        std::cout << "Error al leer el registro.\n";
+                    }
+                } else {
+                    std::cout << "Usuario no encontrado.\n";
+                }
         }else{
             cout<<"Los datos ya existen, Se carga desde los archivos. (arbol persistente(falta implementar))"<<endl;
         }
