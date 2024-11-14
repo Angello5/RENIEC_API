@@ -13,10 +13,18 @@ PageManager::PageManager(const std::string& filename)
         file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
 
         if (!file) {
-            file.open(filename, std::ios::out | std::ios::binary);
-            file.close();
-            file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
-    }
+                // El archivo no existe, crearlo
+                file.open(filename, std::ios::out | std::ios::binary);
+                file.close();
+                file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
+                num_pages = 0;
+            } else {
+                // El archivo existe, calcular num_pages
+                file.seekg(0, std::ios::end);
+                std::streampos file_size = file.tellg();
+                num_pages = static_cast<size_t>(file_size) / PAGE_SIZE;
+                file.seekg(0, std::ios::beg);
+            }
 }
 
 PageManager::~PageManager() {

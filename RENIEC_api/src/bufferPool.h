@@ -25,6 +25,7 @@ public:
 private:
     size_t capacity;
     PageManager& page_manager;
+    size_t current_time; // Contador global para LRU
 
     struct BufferEntry {
         Page page;

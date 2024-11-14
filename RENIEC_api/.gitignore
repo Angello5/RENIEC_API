@@ -1,3 +1,4 @@
 data/user.bin
 data/tree_pages.bin
-Data/block_index.bin
+data/block_index.bin
+data/btree_root.bin

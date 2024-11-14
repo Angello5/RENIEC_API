@@ -47,9 +47,6 @@ const vector<NationalityBirthplace> natPlaces = {
     {"Chilena", "Santiago"},
     {"Argentina", "Buenos Aires"},
     {"Colombiana", "Bogotá"},
-    {"Española", "Madrid"},
-    {"Estadounidense", "Nueva York"},
-    {"Italiana", "Roma"}
 };
 
 struct AddressData {
@@ -63,9 +60,6 @@ const vector<AddressData> addresses = {
     {"Lima", "Lima", "Lima", "Miraflores"},
     {"Cusco", "Cusco", "Cusco", "San Blas"},
     {"Arequipa", "Arequipa", "Arequipa", "Yanahuara"},
-    {"Piura", "Piura", "Piura", "Catacaos"},
-    {"La Libertad", "Trujillo", "Trujillo", "Huanchaco"},
-    {"Junín", "Huancayo", "Huancayo", "El Tambo"},
     {"Loreto", "Maynas", "Iquitos", "Belén"},
 };
 
@@ -300,8 +294,8 @@ void imprimirPrimerosRegistros(const vector<Person>& personas) {
 bool dataExiste() {
     std::ifstream dataFile(DATA_FILENAME);
        std::ifstream indexFile(INDEX_FILENAME);
-       std::ifstream treePagesFile("tree_pages.bin");
-       std::ifstream rootFile("btree_root.bin");
+       std::ifstream treePagesFile("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/tree_pages.bin");
+       std::ifstream rootFile("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/btree_root.bin");
        return dataFile.good() && indexFile.good() && treePagesFile.good() && rootFile.good();
 }
 
@@ -381,7 +375,7 @@ int main() {
                     cout<<"Eleccion invalida, por favor intente de nuevo. \n";
                     break;
             }
-        } while (opcion != 6);
+        } while (opcion != 5);
         
         return 0;
         

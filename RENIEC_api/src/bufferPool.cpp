@@ -9,9 +9,10 @@
 #include <algorithm>
 
 BufferPool::BufferPool(size_t capacity, PageManager& page_manager)
-    : capacity(capacity), page_manager(page_manager) {
-    // inicializacion
+    : capacity(capacity), page_manager(page_manager), current_time(0) {
+    // inicialización
 }
+
 
 BufferPool::~BufferPool() {
     flush();
@@ -19,33 +20,36 @@ BufferPool::~BufferPool() {
 
 //lee el buffer
 void BufferPool::readPage(size_t page_id, Page& page) {
+    current_time++; // Incrementar el contador global
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {
-        page = it->second.page;  //pagina encontrada en el buffer
-    }else{        //se carga desde disco
+        page = it->second.page;  // Página encontrada en el buffer
+        it->second.last_accessed = current_time; // Actualizar last_accessed
+    } else { // Se carga desde disco
         if (buffer.size() >= capacity) {
-            evictPage();  //reemplaza usando LRU
+            evictPage();  // Reemplaza usando LRU
         }
         page_manager.readPage(page_id, page);
-        buffer[page_id] = {page,false};  //agrega pagina al buffer
+        buffer[page_id] = {page, false, current_time};  // Agrega página al buffer
     }
 }
 
-//escribe en el buffer
 void BufferPool::writePage(size_t page_id, const Page& page) {
+    current_time++; // Incrementar el contador global
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {
-        //actualiza la pagina en el buffer
+        // Actualiza la página en el buffer
         it->second.page = page;
         it->second.is_dirty = true;
-    }else{
+        it->second.last_accessed = current_time; // Actualizar last_accessed
+    } else {
         if (buffer.size() >= capacity) {
             evictPage();
         }
-        
-        buffer[page_id] = {page, true};   //agrega pagina al buffer
+        buffer[page_id] = {page, true, current_time};   // Agrega página al buffer
     }
 }
+
 
 void BufferPool::flush() {
     for (auto& entry : buffer) {
@@ -57,18 +61,21 @@ void BufferPool::flush() {
 }
 
 void BufferPool::evictPage() {
-    //encuentra la pagina menos recientemente utilizada
-    size_t lru_page_id= 0;
-    auto it = buffer.find(lru_page_id);
-    if (it != buffer.end()) {
-        if (it->second.is_dirty) {
-            // Escribir la página a disco si está sucia
-            page_manager.writePage(lru_page_id, it->second.page);
-            }
-        // Remover la página del buffer
-        buffer.erase(it);
+    // Encuentra la página menos recientemente utilizada (LRU)
+    auto lru_it = buffer.begin();
+    for (auto it = buffer.begin(); it != buffer.end(); ++it) {
+        if (it->second.last_accessed < lru_it->second.last_accessed) {
+            lru_it = it;
+        }
     }
+    // Escribir la página a disco si está sucia
+    if (lru_it->second.is_dirty) {
+        page_manager.writePage(lru_it->first, lru_it->second.page);
+    }
+    // Remover la página del buffer
+    buffer.erase(lru_it);
 }
+
 
 size_t BufferPool::allocatePage() {
     return page_manager.allocatePage();

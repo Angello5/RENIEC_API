@@ -12,7 +12,7 @@ using namespace std;
 BStarTree::BStarTree(BufferPool& buffer_pool)
     : buffer_pool(buffer_pool) {
         // Intentar cargar el root_page_id desde el archivo
-            std::ifstream root_file("btree_root.bin", std::ios::binary);
+            std::ifstream root_file("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/btree_root.bin", std::ios::binary);
             if (root_file.is_open()) {
                 root_file.read(reinterpret_cast<char*>(&root_page_id), sizeof(root_page_id));
                 root_file.close();
@@ -29,7 +29,7 @@ BStarTree::BStarTree(BufferPool& buffer_pool)
 BStarTree::~BStarTree() {
     std::cout << "Destruyendo BStarTree y guardando root_page_id..." << std::endl;
         // Guardar el root_page_id en un archivo
-        std::ofstream root_file("btree_root.bin", std::ios::binary);
+        std::ofstream root_file("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/btree_root.bin", std::ios::binary);
         if (root_file.is_open()) {
             root_file.write(reinterpret_cast<const char*>(&root_page_id), sizeof(root_page_id));
             root_file.close();
