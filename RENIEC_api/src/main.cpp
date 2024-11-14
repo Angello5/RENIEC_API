@@ -302,9 +302,11 @@ void imprimirPrimerosRegistros(const vector<Person>& personas) {
 }
 
 bool dataExiste() {
-    ifstream dataFile(DATA_FILENAME);
-    ifstream indexFile(INDEX_FILENAME);
-    return dataFile.good() && indexFile.good();
+    std::ifstream dataFile(DATA_FILENAME);
+       std::ifstream indexFile(INDEX_FILENAME);
+       std::ifstream treePagesFile("tree_pages.bin");
+       std::ifstream rootFile("btree_root.bin");
+       return dataFile.good() && indexFile.good() && treePagesFile.good() && rootFile.good();
 }
 
 void mostrarMenu( ){

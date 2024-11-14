@@ -6,19 +6,38 @@
 //
 
 #include "btree*.h"
+#include <iostream>
+using namespace std;
 
 BStarTree::BStarTree(BufferPool& buffer_pool)
     : buffer_pool(buffer_pool) {
-    // Crear una raíz vacía
-        Page root;
-        root.is_leaf = true;
-        root.num_keys = 0;
-        root_page_id = buffer_pool.allocatePage();
-        buffer_pool.writePage(root_page_id, root);
+        std::ifstream root_file("btree_root.bin", std::ios::binary);
+        if (root_file.is_open()) {
+            root_file.read(reinterpret_cast<char*>(&root_page_id), sizeof(root_page_id));
+            root_file.close();
+
+            // Opcional: Verificar que el root_page_id es válido
+            // Podrías agregar lógica aquí para asegurarte de que el root_page_id es coherente
+        } else {
+            // Si el archivo no existe, crear un árbol nuevo
+            Page root;
+            root.is_leaf = true;
+            root.num_keys = 0;
+            root_page_id = buffer_pool.allocatePage();
+            buffer_pool.writePage(root_page_id, root);
+        }
 }
 
 BStarTree::~BStarTree() {
-    buffer_pool.flush();
+    std::ofstream root_file("btree_root.bin", std::ios::binary);
+        if (root_file.is_open()) {
+            root_file.write(reinterpret_cast<const char*>(&root_page_id), sizeof(root_page_id));
+            root_file.close();
+        } else {
+            cerr << "Error al abrir btree_root.bin para escribir.\n";
+        }
+
+        buffer_pool.flush();
 }
 
 void BStarTree::insert(uint32_t key, size_t block_number, size_t record_offset_within_block) {
