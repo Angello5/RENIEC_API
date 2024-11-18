@@ -13,7 +13,7 @@ public:
     void insert(uint32_t key, size_t block_number, size_t record_offset_within_block);
     bool search(uint32_t key, size_t& block_number, size_t& record_offset_within_block);
     void remove(uint32_t key);
-
+    void createNewTree();
 private:
     BufferPool& buffer_pool;
     size_t root_page_id;

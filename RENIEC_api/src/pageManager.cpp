@@ -44,13 +44,32 @@ size_t PageManager::allocatePage() {
     return page_id;
 }
 
-void PageManager::readPage(size_t page_id, Page& page) {
+bool PageManager::readPage(size_t page_id, Page& page) {
+    if (!file.is_open()) {
+        std::cerr << "Error: El archivo de páginas no está abierto para lectura." << std::endl;
+        return false;
+    }
+
     file.seekg(page_id * PAGE_SIZE);
+    if (file.fail()) {
+        std::cerr << "Error al hacer seekg en la página " << page_id << "." << std::endl;
+        file.clear();
+        return false;
+    }
+
     file.read(reinterpret_cast<char*>(&page), sizeof(Page));
+    if (file.fail()) {
+        std::cerr << "Error al leer la página " << page_id << " desde el archivo." << std::endl;
+        file.clear();
+        return false;
+    }
+
+    return true;
 }
 
+
 void PageManager::writePage(size_t page_id, const Page& page) {
-    std::cout << "PageManager: escribiendo página " << page_id << " al archivo." << std::endl;
+    //std::cout << "PageManager: escribiendo página " << page_id << " al archivo." << std::endl;
 
     if (!file.is_open()) {
         std::cerr << "Error: El archivo no está abierto para escribir." << std::endl;

@@ -151,7 +151,7 @@ void generateAndLoadData(BStarTree& tree, DataManager& dataManager, size_t num_p
 
 void printUser(const Person* persona) {
     if (persona) {
-        std::cout << "DNI: " << persona->dni << "\n"
+        std::cout << "\nDNI: " << persona->dni << "\n"
             << "Nombre: " << persona->name << "\n"
             << "Apellido:: " << persona->surname << "\n"
             << "Nacionalidad: " << persona->birthplace.nationality << "\n"
@@ -223,7 +223,8 @@ void searchUser(BStarTree& tree, DataManager& dataManager) {
     uint32_t dni;
     cout << "Ingresa DNI a buscar: ";
     cin >> dni;
-
+    
+    auto start = chrono::high_resolution_clock::now();
     size_t block_number, record_offset_within_block;
     if (tree.search(dni, block_number, record_offset_within_block)) {
         Person persona;
@@ -239,6 +240,9 @@ void searchUser(BStarTree& tree, DataManager& dataManager) {
     } else {
         cout << "Usuario no encontrado.\n";
     }
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> duration = end - start;
+    cout << "Tiempo en buscar un usuario:  " << duration.count();
 }
 
 void removeUser(BStarTree& tree, DataManager& dataManager) {
@@ -246,6 +250,7 @@ void removeUser(BStarTree& tree, DataManager& dataManager) {
     cout << "Ingresa DNI a eliminar: ";
     cin >> dni;
 
+    auto start = chrono::high_resolution_clock::now();
     size_t block_number, record_offset_within_block;
     if (tree.search(dni, block_number, record_offset_within_block)) {
         Person persona;
@@ -259,8 +264,12 @@ void removeUser(BStarTree& tree, DataManager& dataManager) {
     } else {
         cout << "Usuario no encontrado.\n";
     }
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> duration = end - start;
+    cout << "Tiempo en eliminar un usuario:  " << duration.count();
 }
 void imprimirPrimerosRegistros(DataManager& dataManager) {
+    auto start = chrono::high_resolution_clock::now();
     size_t records_needed = 10;
     size_t records_read = 0;
     size_t block_number = 0;
@@ -285,6 +294,9 @@ void imprimirPrimerosRegistros(DataManager& dataManager) {
     if (records_read == 0) {
         std::cout << "No se encontraron registros.\n";
     }
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> duration = end - start;
+    cout << "Tiempo en mostrar los 10 primeros usuarios:  " << duration.count();
 }
 
 bool dataExiste() {
@@ -316,7 +328,7 @@ int main() {
         
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
-        size_t num_personas = 100000; // para probar 1 millon
+        size_t num_personas = 1000000; // para probar 1 millon
         
         if(!dataExiste()){
             generateAndLoadData(btree, data_manager, num_personas);

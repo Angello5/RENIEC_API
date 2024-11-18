@@ -55,7 +55,7 @@ void DataManager::writePerson(const Person& person, size_t& out_block_number, si
     out_block_number = block_number;
     out_record_offset_within_block = block_records.size() - 1;
 
-    std::cout << "Agregado persona con DNI: " << person.dni << " a block_records. Block number: " << block_number << ", record offset: " << out_record_offset_within_block << std::endl;
+    //std::cout << "Agregado persona con DNI: " << person.dni << " a block_records. Block number: " << block_number << ", record offset: " << out_record_offset_within_block << std::endl;
     
     if (block_records.size() >= records_per_block) {
         compressAndWriteBlock();
@@ -119,7 +119,7 @@ void DataManager::compressAndWriteBlock() {
     
     block_number++;
     
-    cout<<"Bloque escrito. block_number: "<< block_number << ", total_blocks" <<total_blocks<<endl;
+    //cout<<"Bloque escrito. block_number: "<< block_number << ", total_blocks" <<total_blocks<<endl;
 }
 
 size_t DataManager::getBlockOffset(size_t block_number) {
@@ -252,7 +252,7 @@ void DataManager::loadBlockIndex() {
     total_blocks = index_size / sizeof(BlockIndexEntry);
     index_file.seekg(0, std::ios::beg);
 
-    std::cout << "loadBlockIndex: total_blocks = " << total_blocks << std::endl;
+    //std::cout << "loadBlockIndex: total_blocks = " << total_blocks << std::endl;
 }
 
 
@@ -281,5 +281,5 @@ void DataManager::updateBlockIndex(size_t block_number, size_t block_offset) {
     
     total_blocks = std::max(total_blocks, block_number + 1);
     
-    cout<<"Actualiazando indice, block_number: "<<block_number<<", block offset "<<block_offset<<", total_blocks: "<<total_blocks <<endl;
+    //cout<<"Actualiazando indice, block_number: "<<block_number<<", block offset "<<block_offset<<", total_blocks: "<<total_blocks <<endl;
 }

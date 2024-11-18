@@ -18,7 +18,7 @@ public:
     ~PageManager();
 
     size_t allocatePage();
-    void readPage(size_t page_id, Page& page);
+    bool readPage(size_t page_id, Page& page);
     void writePage(size_t page_id, const Page& page);
 
 private:

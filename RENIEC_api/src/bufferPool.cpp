@@ -20,22 +20,25 @@ BufferPool::~BufferPool() {
 
 //lee el buffer
 void BufferPool::readPage(size_t page_id, Page& page) {
-    current_time++; // Incrementar el contador global
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {
-        page = it->second.page;  // Página encontrada en el buffer
-        it->second.last_accessed = current_time; // Actualizar last_accessed
-    } else { // Se carga desde disco
-        if (buffer.size() >= capacity) {
-            evictPage();  // Reemplaza usando LRU
+        page = it->second.page;
+        std::cout << "Página " << page_id << " leída desde el buffer." << std::endl;
+    } else {
+        if (page_manager.readPage(page_id, page)) {
+            std::cout << "Página " << page_id << " leída desde el disco." << std::endl;
+            // Agregar la página al buffer
+            buffer[page_id] = {page, false}; // No está sucia
+            // Manejar política de reemplazo si el buffer está lleno
+        } else {
+            std::cerr << "Error al leer la página " << page_id << " desde el disco." << std::endl;
         }
-        page_manager.readPage(page_id, page);
-        buffer[page_id] = {page, false, current_time};  // Agrega página al buffer
     }
 }
 
+
 void BufferPool::writePage(size_t page_id, const Page& page) {
-    cout<<"Escribiendo pagina " <<page_id <<"en el buffer"<<endl;
+    //cout<<"Escribiendo pagina " <<page_id <<"en el buffer"<<endl;
     current_time++; // Incrementar el contador global
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {
