@@ -42,13 +42,16 @@ BStarTree::~BStarTree() {
         buffer_pool.flush();
 }
 
-void BStarTree::createNewTree(){
+void BStarTree::createNewTree() {
     Page root;
     root.is_leaf = true;
     root.num_keys = 0;
+    std::fill(std::begin(root.entries), std::end(root.entries), IndexEntry{});
+    std::fill(std::begin(root.children), std::end(root.children), 0);
     root_page_id = buffer_pool.allocatePage();
     buffer_pool.writePage(root_page_id, root);
 }
+
 
 void BStarTree::insert(uint32_t key, size_t block_number, size_t record_offset_within_block) {
     Page root;

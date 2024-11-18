@@ -24,7 +24,7 @@ PageManager::PageManager(const std::string& filename)
                 // El archivo existe, calcular num_pages
                 file.seekg(0, std::ios::end);
                 std::streampos file_size = file.tellg();
-                num_pages = static_cast<size_t>(file_size) / PAGE_SIZE;
+                num_pages = static_cast<uint32_t>(file_size) / PAGE_SIZE;
                 file.seekg(0, std::ios::beg);
             }
 }
@@ -33,8 +33,8 @@ PageManager::~PageManager() {
     file.close();
 }
 
-size_t PageManager::allocatePage() {
-    size_t page_id;
+uint32_t PageManager::allocatePage() {
+    uint32_t page_id;
     if (!free_pages.empty()) {
         page_id = *free_pages.begin();
         free_pages.erase(free_pages.begin());
@@ -44,7 +44,7 @@ size_t PageManager::allocatePage() {
     return page_id;
 }
 
-bool PageManager::readPage(size_t page_id, Page& page) {
+bool PageManager::readPage(uint32_t page_id, Page& page) {
     if (!file.is_open()) {
         std::cerr << "Error: El archivo de páginas no está abierto para lectura." << std::endl;
         return false;
@@ -68,7 +68,7 @@ bool PageManager::readPage(size_t page_id, Page& page) {
 }
 
 
-void PageManager::writePage(size_t page_id, const Page& page) {
+void PageManager::writePage(uint32_t page_id, const Page& page) {
     //std::cout << "PageManager: escribiendo página " << page_id << " al archivo." << std::endl;
 
     if (!file.is_open()) {

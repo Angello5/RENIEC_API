@@ -17,15 +17,15 @@ public:
     PageManager(const std::string& filename);
     ~PageManager();
 
-    size_t allocatePage();
-    bool readPage(size_t page_id, Page& page);
-    void writePage(size_t page_id, const Page& page);
+    uint32_t allocatePage();
+    bool readPage(uint32_t page_id, Page& page);
+    void writePage(uint32_t page_id, const Page& page);
 
 private:
     std::fstream file;
     std::string filename;
-    std::set<size_t> free_pages; 
-    size_t num_pages;
+    std::set<uint32_t> free_pages; 
+    uint32_t num_pages;
 
 };
 
