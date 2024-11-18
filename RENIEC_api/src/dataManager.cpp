@@ -2,6 +2,8 @@
 #include <sstream>
 #include <iostream>
 
+using namespace std;
+
 DataManager::DataManager(const std::string& data_filename, const std::string& index_filename, size_t records_per_block)
     : data_filename(data_filename), index_filename(index_filename), records_per_block(records_per_block), block_number(0), total_blocks(0) {
     data_file.open(data_filename, std::ios::in | std::ios::out | std::ios::binary);
@@ -54,7 +56,9 @@ void DataManager::compressAndWriteBlock() {
     boost::archive::binary_oarchive oa(ss);
     oa << block_records;
 
-    // Comprimir el buffer
+    string serialized_data = ss.str();
+    /*
+    // Comprimir el buffer(vamos a probar si funciona sin comprimir y descomprimir)
     std::string uncompressed_data = ss.str();
     std::string compressed_data;
     {
@@ -66,13 +70,14 @@ void DataManager::compressAndWriteBlock() {
         out.flush();
         compressed_data = compressed_ss.str();
     }
-
+    */
     data_file.seekp(0, std::ios::end);
     size_t block_offset = data_file.tellp();
     
-    uint32_t data_size = static_cast<uint32_t>(compressed_data.size());
+    //cambiar de compresed_data a serialized_data
+    uint32_t data_size = static_cast<uint32_t>(serialized_data.size());
     data_file.write(reinterpret_cast<char*>(&data_size), sizeof(data_size));
-    data_file.write(compressed_data.data(), data_size);
+    data_file.write(serialized_data.data(), data_size);
     
     updateBlockIndex(block_number, block_offset);
 }
@@ -95,6 +100,8 @@ size_t DataManager::getTotalBlocks() const {
 }
 
 bool DataManager::loadBlock(size_t block_number, std::vector<Person>& records) {
+    //cambiar la descompresion del bloque
+    
     if (block_number >= total_blocks) {
            // Bloque no existe
            std::cerr << "Error: el bloque " << block_number << " no existe. Total de bloques: " << total_blocks << std::endl;
@@ -111,9 +118,10 @@ bool DataManager::loadBlock(size_t block_number, std::vector<Person>& records) {
            std::cerr << "Error al leer el tamaño de los datos del bloque " << block_number << std::endl;
            return false;
        }
-
-       std::string compressed_data(data_size, '\0');
-       data_file.read(&compressed_data[0], data_size);
+    
+        string serialized_data(data_size,'\0');
+        //std::string compressed_data(data_size, '\0'); (cambiar para compresion)
+        data_file.read(&serialized_data[0], data_size);
 
        if (data_file.gcount() != data_size) {
            std::cerr << "No se pudo leer la cantidad esperada de datos del bloque " << block_number << std::endl;
@@ -122,11 +130,12 @@ bool DataManager::loadBlock(size_t block_number, std::vector<Person>& records) {
 
        try {
            // Descomprimir el bloque
-           std::stringstream compressed_ss(compressed_data);
-           boost::iostreams::filtering_stream<boost::iostreams::input> in;
-           in.push(boost::iostreams::zlib_decompressor());
-           in.push(compressed_ss);
-           boost::archive::binary_iarchive ia(in);
+           stringstream ss(serialized_data);
+           //std::stringstream compressed_ss(compressed_data);
+           //boost::iostreams::filtering_stream<boost::iostreams::input> in;
+           //in.push(boost::iostreams::zlib_decompressor());
+           //in.push(compressed_ss);
+           boost::archive::binary_iarchive ia(ss);
            ia >> records;
        } catch (const std::exception& e) {
            std::cerr << "Error al descomprimir el bloque " << block_number << ": " << e.what() << std::endl;
