@@ -316,7 +316,7 @@ int main() {
         
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
-        size_t num_personas = 1000; // para probar 1 millon
+        size_t num_personas = 100000; // para probar 1 millon
         
         if(!dataExiste()){
             generateAndLoadData(btree, data_manager, num_personas);
