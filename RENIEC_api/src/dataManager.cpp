@@ -1,5 +1,6 @@
 #include "dataManager.h"
 #include <sstream>
+#include <iostream>
 
 DataManager::DataManager(const std::string& data_filename, const std::string& index_filename, size_t records_per_block)
     : data_filename(data_filename), index_filename(index_filename), records_per_block(records_per_block), block_number(0), total_blocks(0) {
@@ -89,25 +90,50 @@ size_t DataManager::getBlockOffset(size_t block_number) {
     return entry.block_offset;
 }
 
-void DataManager::loadBlock(size_t block_number, std::vector<Person>& records) {
-    size_t block_offset = getBlockOffset(block_number);
-    data_file.seekg(block_offset);
+size_t DataManager::getTotalBlocks() const {
+    return total_blocks;
+}
 
-    uint32_t data_size;
-    data_file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
+bool DataManager::loadBlock(size_t block_number, std::vector<Person>& records) {
+    if (block_number >= total_blocks) {
+           // Bloque no existe
+           std::cerr << "Error: el bloque " << block_number << " no existe. Total de bloques: " << total_blocks << std::endl;
+           return false;
+       }
 
-    std::string compressed_data(data_size, '\0');
-    data_file.read(&compressed_data[0], data_size);
+       size_t block_offset = getBlockOffset(block_number);
+       data_file.seekg(block_offset);
 
-    // Descomprimir el bloque
-    {
-        std::stringstream compressed_ss(compressed_data);
-        boost::iostreams::filtering_stream<boost::iostreams::input> in;
-        in.push(boost::iostreams::zlib_decompressor());
-        in.push(compressed_ss);
-        boost::archive::binary_iarchive ia(in);
-        ia >> records;
-    }
+       uint32_t data_size;
+       data_file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
+
+       if (data_file.fail()) {
+           std::cerr << "Error al leer el tamaño de los datos del bloque " << block_number << std::endl;
+           return false;
+       }
+
+       std::string compressed_data(data_size, '\0');
+       data_file.read(&compressed_data[0], data_size);
+
+       if (data_file.gcount() != data_size) {
+           std::cerr << "No se pudo leer la cantidad esperada de datos del bloque " << block_number << std::endl;
+           return false;
+       }
+
+       try {
+           // Descomprimir el bloque
+           std::stringstream compressed_ss(compressed_data);
+           boost::iostreams::filtering_stream<boost::iostreams::input> in;
+           in.push(boost::iostreams::zlib_decompressor());
+           in.push(compressed_ss);
+           boost::archive::binary_iarchive ia(in);
+           ia >> records;
+       } catch (const std::exception& e) {
+           std::cerr << "Error al descomprimir el bloque " << block_number << ": " << e.what() << std::endl;
+           return false;
+       }
+
+       return true;
 }
 
 bool DataManager::readPerson(size_t block_number, size_t record_offset_within_block, Person& person) {

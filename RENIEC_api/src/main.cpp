@@ -260,35 +260,31 @@ void removeUser(BStarTree& tree, DataManager& dataManager) {
         cout << "Usuario no encontrado.\n";
     }
 }
-void imprimirPrimerosRegistros(const vector<Person>& personas) {
-    auto start = chrono::high_resolution_clock::now();
+void imprimirPrimerosRegistros(DataManager& dataManager) {
+    size_t records_needed = 10;
+    size_t records_read = 0;
+    size_t block_number = 0;
 
-    cout << "\n=== Primeros 10 Registros ===" << endl;
+    size_t total_blocks = dataManager.getTotalBlocks();
 
-    // Asegura que no se excedan los límites del vector
-    size_t numRegistros = min(personas.size(), static_cast<size_t>(10));
+    while (records_read < records_needed && block_number < total_blocks) {
+        std::vector<Person> records;
+        if (!dataManager.loadBlock(block_number, records)) {
+            break; // No hay más bloques para leer
+        }
 
-    for (size_t i = 0; i < numRegistros; ++i) {
-        const Person& persona = personas[i];
-        cout << "DNI: " << persona.dni << endl;
-        cout<<  "NOMBRE: " <<persona.name <<endl;
-        cout << "Apellido: " << persona.surname << endl;
-        cout << "Nacionalidad: " << persona.birthplace.nationality << endl;
-        cout << "Lugar de Nacimiento: " << persona.birthplace.birthplace << endl;
-        cout << "Departamento: " << persona.address.departamento << endl;
-        cout << "Ciudad: " << persona.address.ciudad << endl;
-        cout << "Provincia: " << persona.address.provincia << endl;
-        cout << "Distrito: " << persona.address.distrito << endl;
-        cout << "Teléfono: " << persona.phone << endl;
-        cout << "Correo: " << persona.email << endl;
-        cout << "Estado Civil: " << persona.marital_status << endl;
-        cout << endl;
+        for (size_t i = 0; i < records.size() && records_read < records_needed; ++i) {
+            const Person& persona = records[i];
+            if (!persona.is_deleted) {
+                printUser(&persona);
+                ++records_read;
+            }
+        }
+        ++block_number;
     }
-
-    // Se finaliza la medición del tiempo
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double> duration = end - start;
-    cout << "Tiempo en mostrar los 10 primeros registros: " << duration.count() << " segundos\n";
+    if (records_read == 0) {
+        std::cout << "No se encontraron registros.\n";
+    }
 }
 
 bool dataExiste() {
@@ -320,7 +316,7 @@ int main() {
         
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
-        size_t num_personas = 33000000; // para probar 1 millon
+        size_t num_personas = 1000; // para probar 1 millon
         
         if(!dataExiste()){
             generateAndLoadData(btree, data_manager, num_personas);
@@ -366,7 +362,7 @@ int main() {
                 }
 
                 case 4:
-                    //imprimirPrimerosRegistros(personas);
+                    imprimirPrimerosRegistros(data_manager);
                     break;
                 case 5:
                     cout<<"Salida... \n"<<endl;

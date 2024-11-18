@@ -27,10 +27,12 @@ public:
     DataManager(const std::string& data_filename, const std::string& index_filename, size_t records_per_block);
     ~DataManager();
 
+    
     void writePerson(const Person& person, size_t& block_number, size_t& record_offset_within_block);
     bool readPerson(size_t block_number, size_t record_offset_within_block, Person& person);
     void updatePerson(size_t block_number, size_t record_offset_within_block, const Person& person);
-
+    size_t getTotalBlocks() const;
+    bool loadBlock(size_t block_number, std::vector<Person>& records);
 private:
     fstream data_file;
     string data_filename;
@@ -45,7 +47,6 @@ private:
     
     void compressAndWriteBlock();
     size_t getBlockOffset(size_t block_number);
-    void loadBlock(size_t block_number, std::vector<Person>& records);
     void loadBlockIndex();
     void updateBlockIndex(size_t block_number, size_t block_offset);
 };

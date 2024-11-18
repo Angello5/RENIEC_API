@@ -35,6 +35,7 @@ void BufferPool::readPage(size_t page_id, Page& page) {
 }
 
 void BufferPool::writePage(size_t page_id, const Page& page) {
+    cout<<"Escribiendo pagina " <<page_id <<"en el buffer"<<endl;
     current_time++; // Incrementar el contador global
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {

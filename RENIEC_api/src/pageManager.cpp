@@ -8,6 +8,8 @@
 #include "pageManager.h"
 #include <iostream>
 
+using namespace std;
+
 PageManager::PageManager(const std::string& filename)
     : filename(filename), num_pages(0) {
         file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
@@ -48,6 +50,37 @@ void PageManager::readPage(size_t page_id, Page& page) {
 }
 
 void PageManager::writePage(size_t page_id, const Page& page) {
+    std::cout << "PageManager: escribiendo página " << page_id << " al archivo." << std::endl;
+
+    if (!file.is_open()) {
+        std::cerr << "Error: El archivo no está abierto para escribir." << std::endl;
+        return;
+    }
+
     file.seekp(page_id * PAGE_SIZE);
-    file.write(reinterpret_cast<const char*>(&page), sizeof(Page));
+
+    if (file.fail()) {
+        std::cerr << "Error al hacer seekp en la página " << page_id << "." << std::endl;
+        file.clear();
+        return;
+    }
+
+    // Ajuste para escribir exactamente PAGE_SIZE bytes
+    char buffer[PAGE_SIZE] = {0};
+    std::memcpy(buffer, &page, sizeof(Page));
+
+    file.write(buffer, PAGE_SIZE);
+
+    if (file.fail()) {
+        std::cerr << "Error al escribir la página " << page_id << " en el archivo." << std::endl;
+        file.clear();
+        return;
+    }
+
+    file.flush();
+
+    if (file.fail()) {
+        std::cerr << "Error al hacer flush del archivo después de escribir la página " << page_id << "." << std::endl;
+        file.clear();
+    }
 }
