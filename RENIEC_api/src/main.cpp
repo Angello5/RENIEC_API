@@ -329,7 +329,8 @@ int main() {
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
         
-        uint32_t num_personas = 1000; // para probar 1k
+        //uint32_t num_personas = 1000; // para probar 1k
+        uint32_t num_personas = 10000;   //para probar 10k
         //uint32_t num_personas = 100000; // para probar 100k
         //uint32_t num_personas = 1000000; // para probar 1 millon
         //uint32_t num_personas = 10000000; // para probar 10 millones
