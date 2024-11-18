@@ -86,8 +86,8 @@ bool BStarTree::search(uint32_t key, uint32_t& block_number, uint32_t& record_of
     while (true) {
         Page page;
         buffer_pool.readPage(page_id, page);
-        std::cout << "Leyendo página " << page_id << " con " << page.num_keys << " claves." << std::endl;
-        std::cout << "Claves en la página " << page_id << ": ";
+        //std::cout << "Leyendo página " << page_id << " con " << page.num_keys << " claves." << std::endl;
+        //std::cout << "Claves en la página " << page_id << ": ";
         for (uint32_t k = 0; k < page.num_keys; ++k) {
             std::cout << page.entries[k].dni << " ";
         }

@@ -23,10 +23,10 @@ void BufferPool::readPage(uint32_t page_id, Page& page) {
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {
         page = it->second.page;
-        std::cout << "Página " << page_id << " leída desde el buffer." << std::endl;
+        //std::cout << "Página " << page_id << " leída desde el buffer." << std::endl;
     } else {
         if (page_manager.readPage(page_id, page)) {
-            std::cout << "Página " << page_id << " leída desde el disco." << std::endl;
+            //std::cout << "Página " << page_id << " leída desde el disco." << std::endl;
             // Agregar la página al buffer
             buffer[page_id] = {page, false}; // No está sucia
             // Manejar política de reemplazo si el buffer está lleno

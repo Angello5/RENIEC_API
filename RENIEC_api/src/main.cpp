@@ -330,8 +330,8 @@ int main() {
         
         
         //uint32_t num_personas = 1000; // para probar 1k
-        uint32_t num_personas = 10000;   //para probar 10k
-        //uint32_t num_personas = 100000; // para probar 100k
+        //uint32_t num_personas = 10000;   //para probar 10k
+        uint32_t num_personas = 100000; // para probar 100k
         //uint32_t num_personas = 1000000; // para probar 1 millon
         //uint32_t num_personas = 10000000; // para probar 10 millones
         //uint32_t num_personas = 33000000; // para probar 33 millones
