@@ -46,7 +46,7 @@ void DataManager::writePerson(const Person& person, size_t& out_block_number, si
     if (block_records.size() >= records_per_block) {
         compressAndWriteBlock();
         block_records.clear();
-        block_number++;
+        //block_number++;
     }
 }
 
@@ -80,6 +80,10 @@ void DataManager::compressAndWriteBlock() {
     data_file.write(serialized_data.data(), data_size);
     
     updateBlockIndex(block_number, block_offset);
+    
+    block_number++;
+    
+    cout<<"Bloque escrito. block_number: "<< block_number << ", total_blocks" <<total_blocks<<endl;
 }
 
 size_t DataManager::getBlockOffset(size_t block_number) {
@@ -204,5 +208,8 @@ void DataManager::updateBlockIndex(size_t block_number, size_t block_offset) {
     BlockIndexEntry entry = {block_number, block_offset};
     index_file.seekp(block_number * sizeof(BlockIndexEntry));
     index_file.write(reinterpret_cast<const char*>(&entry), sizeof(BlockIndexEntry));
+    index_file.flush();
     total_blocks = std::max(total_blocks, block_number + 1);
+    
+    cout<<"Actualiazando indice, block_number: "<<block_number<<", block offset "<<block_offset<<", total_blocks: "<<total_blocks <<endl;
 }
