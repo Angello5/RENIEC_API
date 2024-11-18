@@ -53,7 +53,7 @@ void BStarTree::createNewTree() {
 }
 
 
-void BStarTree::insert(uint32_t key, size_t block_number, size_t record_offset_within_block) {
+void BStarTree::insert(uint32_t key, uint32_t block_number, uint32_t record_offset_within_block) {
     Page root;
     buffer_pool.readPage(root_page_id, root);
 
@@ -61,7 +61,7 @@ void BStarTree::insert(uint32_t key, size_t block_number, size_t record_offset_w
 
     if (root.num_keys == MAX_KEYS) {
         // La raíz está llena, debemos dividirla
-        size_t new_root_page_id = buffer_pool.allocatePage();
+        uint32_t new_root_page_id = buffer_pool.allocatePage();
         Page new_root;
         new_root.is_leaf = false;
         new_root.num_keys = 0;
@@ -80,15 +80,15 @@ void BStarTree::insert(uint32_t key, size_t block_number, size_t record_offset_w
 
 
 
-bool BStarTree::search(uint32_t key, size_t& block_number, size_t& record_offset_within_block) {
-    size_t page_id = root_page_id;
+bool BStarTree::search(uint32_t key, uint32_t& block_number, uint32_t& record_offset_within_block) {
+    uint32_t page_id = root_page_id;
     std::cout << "Iniciando búsqueda en root_page_id: " << root_page_id << std::endl;
     while (true) {
         Page page;
         buffer_pool.readPage(page_id, page);
         std::cout << "Leyendo página " << page_id << " con " << page.num_keys << " claves." << std::endl;
         std::cout << "Claves en la página " << page_id << ": ";
-        for (size_t k = 0; k < page.num_keys; ++k) {
+        for (uint32_t k = 0; k < page.num_keys; ++k) {
             std::cout << page.entries[k].dni << " ";
         }
         std::cout << std::endl;
@@ -122,7 +122,7 @@ void BStarTree::remove(uint32_t key) {
     // Implementación de remove
 }
 
-void BStarTree::insertNonFull(size_t page_id, const IndexEntry& entry) {
+void BStarTree::insertNonFull(uint32_t page_id, const IndexEntry& entry) {
     Page page;
     buffer_pool.readPage(page_id, page);
     std::cout << "insertNonFull: Insertando clave " << entry.dni << " en página " << page_id << (page.is_leaf ? " (hoja)" : " (interna)") << std::endl;
@@ -161,24 +161,24 @@ void BStarTree::insertNonFull(size_t page_id, const IndexEntry& entry) {
 }
 
 
-void BStarTree::splitChild(size_t parent_page_id, size_t child_index, size_t child_page_id) {
+void BStarTree::splitChild(uint32_t parent_page_id, uint32_t child_index, uint32_t child_page_id) {
     Page parent, child, sibling;
     buffer_pool.readPage(parent_page_id, parent);
     buffer_pool.readPage(child_page_id, child);
     
     std::cout << "Dividiendo hijo " << child_page_id << " en índice " << child_index << " del padre " << parent_page_id << std::endl;
     
-    size_t sibling_page_id = buffer_pool.allocatePage();
+    uint32_t sibling_page_id = buffer_pool.allocatePage();
     sibling.is_leaf = child.is_leaf;
     sibling.num_keys = MIN_KEYS; // Suponiendo que MIN_KEYS = MAX_KEYS / 2
 
     // Mover la mitad de las entradas al hermano
-    for (size_t j = 0; j < MIN_KEYS; j++) {
+    for (uint32_t j = 0; j < MIN_KEYS; j++) {
         sibling.entries[j] = child.entries[j + MIN_KEYS + 1];
     }
 
     if (!child.is_leaf) {
-        for (size_t j = 0; j <= MIN_KEYS; j++) {
+        for (uint32_t j = 0; j <= MIN_KEYS; j++) {
             sibling.children[j] = child.children[j + MIN_KEYS + 1];
         }
     }
@@ -186,7 +186,7 @@ void BStarTree::splitChild(size_t parent_page_id, size_t child_index, size_t chi
     child.num_keys = MIN_KEYS;
 
     // Insertar la nueva entrada en el padre
-    for (size_t j = parent.num_keys; j > child_index; j--) {
+    for (uint32_t j = parent.num_keys; j > child_index; j--) {
         parent.entries[j] = parent.entries[j - 1];
         parent.children[j + 1] = parent.children[j];
     }

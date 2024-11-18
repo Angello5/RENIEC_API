@@ -23,9 +23,9 @@ const uint32_t DNI_MIN = 10000000;
 const uint32_t DNI_MAX = 77999999;
 const uint32_t TOTAL_DNIS = DNI_MAX - DNI_MIN + 1;
 const uint32_t PRIME = 100000007;
-const size_t BLOCK_SIZE = 1 *1024 * 1024;   //1mb
-const size_t AVERAGE_RECORD_SIZE = 200;
-const size_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
+const uint32_t BLOCK_SIZE = 1 *1024 * 1024;   //1mb
+const uint32_t AVERAGE_RECORD_SIZE = 200;
+const uint32_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
 const string DATA_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/user.bin";
 const string INDEX_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/block_index.bin";
 
@@ -67,12 +67,12 @@ const vector<string> marital_statuses = {
     "Soltero(a)", "Casado(a)", "Viudo(a)", "Divorciado(a)"
 };
 
-uint32_t permuteDNI(size_t index){
+uint32_t permuteDNI(uint32_t index){
     uint64_t permuted = (static_cast<uint64_t>(index) * 48271) % PRIME;
     return static_cast<uint32_t>(permuted);
 }
 // Función para generar un DNI aleatorio
-uint32_t generarDni(size_t index) {
+uint32_t generarDni(uint32_t index) {
     uint32_t permuted = permuteDNI(index);
     uint32_t dni = DNI_MIN + (permuted % TOTAL_DNIS);
     return dni;
@@ -102,7 +102,7 @@ string generarMarital_status() {
 }
 
 // Función para generar una persona
-Person generarPersona(size_t index) {
+Person generarPersona(uint32_t index) {
     Person persona;
     persona.dni = generarDni(index);
     persona.phone = generarPhone();
@@ -125,13 +125,13 @@ Person generarPersona(size_t index) {
 }
 
 // Función para generar datos masivos y cargarlos en el sistema
-void generateAndLoadData(BStarTree& tree, DataManager& dataManager, size_t num_personas) {
+void generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint32_t num_personas) {
     cout << "Generando y cargando datos..." << endl;
     auto start = chrono::high_resolution_clock::now();
 
-    for (size_t i = 0; i < num_personas; ++i) {
+    for (uint32_t i = 0; i < num_personas; ++i) {
         Person persona = generarPersona(i);
-        size_t block_number, record_offset_within_block;
+        uint32_t block_number, record_offset_within_block;
         dataManager.writePerson(persona, block_number, record_offset_within_block);
         tree.insert(persona.dni, block_number, record_offset_within_block);
 
@@ -209,7 +209,7 @@ void insertUser(BStarTree& btree, DataManager& dataManager) {
     std::getline(cin, persona.marital_status);
     
     auto start = chrono::high_resolution_clock::now();
-    size_t block_number, record_offset_within_block;
+    uint32_t block_number, record_offset_within_block;
     dataManager.writePerson(persona, block_number, record_offset_within_block);
     btree.insert(persona.dni, block_number, record_offset_within_block);
 
@@ -225,7 +225,7 @@ void searchUser(BStarTree& tree, DataManager& dataManager) {
     cin >> dni;
     
     auto start = chrono::high_resolution_clock::now();
-    size_t block_number, record_offset_within_block;
+    uint32_t block_number, record_offset_within_block;
     if (tree.search(dni, block_number, record_offset_within_block)) {
         Person persona;
         if (dataManager.readPerson(block_number, record_offset_within_block, persona)) {
@@ -251,7 +251,7 @@ void removeUser(BStarTree& tree, DataManager& dataManager) {
     cin >> dni;
 
     auto start = chrono::high_resolution_clock::now();
-    size_t block_number, record_offset_within_block;
+    uint32_t block_number, record_offset_within_block;
     if (tree.search(dni, block_number, record_offset_within_block)) {
         Person persona;
         if (dataManager.readPerson(block_number, record_offset_within_block, persona)) {
@@ -270,11 +270,11 @@ void removeUser(BStarTree& tree, DataManager& dataManager) {
 }
 void imprimirPrimerosRegistros(DataManager& dataManager) {
     auto start = chrono::high_resolution_clock::now();
-    size_t records_needed = 10;
-    size_t records_read = 0;
-    size_t block_number = 0;
+    uint32_t records_needed = 10;
+    uint32_t records_read = 0;
+    uint32_t block_number = 0;
 
-    size_t total_blocks = dataManager.getTotalBlocks();
+    uint32_t total_blocks = dataManager.getTotalBlocks();
 
     while (records_read < records_needed && block_number < total_blocks) {
         std::vector<Person> records;
@@ -282,7 +282,7 @@ void imprimirPrimerosRegistros(DataManager& dataManager) {
             break; // No hay más bloques para leer
         }
 
-        for (size_t i = 0; i < records.size() && records_read < records_needed; ++i) {
+        for (uint32_t i = 0; i < records.size() && records_read < records_needed; ++i) {
             const Person& persona = records[i];
             if (!persona.is_deleted) {
                 printUser(&persona);
@@ -329,11 +329,11 @@ int main() {
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
         
-        size_t num_personas = 1000; // para probar 1k
-        //size_t num_personas = 100000; // para probar 100k
-        //size_t num_personas = 1000000; // para probar 1 millon
-        //size_t num_personas = 10000000; // para probar 10 millones
-        //size_t num_personas = 33000000; // para probar 33 millones
+        uint32_t num_personas = 1000; // para probar 1k
+        //uint32_t num_personas = 100000; // para probar 100k
+        //uint32_t num_personas = 1000000; // para probar 1 millon
+        //uint32_t num_personas = 10000000; // para probar 10 millones
+        //uint32_t num_personas = 33000000; // para probar 33 millones
         
         
         if(!dataExiste()){
@@ -341,7 +341,7 @@ int main() {
             
             //Prueba de busqueda
             uint32_t dni_a_buscar = generarDni(0); // O el DNI del primer registro
-                size_t block_number, record_offset_within_block;
+                uint32_t block_number, record_offset_within_block;
                 if (btree.search(dni_a_buscar, block_number, record_offset_within_block)) {
                     Person persona;
                     if (data_manager.readPerson(block_number, record_offset_within_block, persona)) {

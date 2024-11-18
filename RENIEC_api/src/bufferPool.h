@@ -15,25 +15,25 @@ using namespace std;
 
 class BufferPool {
 public:
-    BufferPool(size_t capacity, PageManager& page_manager);
+    BufferPool(uint32_t capacity, PageManager& page_manager);
     ~BufferPool();
 
-    void readPage(size_t page_id, Page& page);
-    void writePage(size_t page_id, const Page& page);
+    void readPage(uint32_t page_id, Page& page);
+    void writePage(uint32_t page_id, const Page& page);
     void flush();
-    size_t allocatePage();
+    uint32_t allocatePage();
 private:
-    size_t capacity;
+    uint32_t capacity;
     PageManager& page_manager;
-    size_t current_time; // Contador global para LRU
+    uint32_t current_time; // Contador global para LRU
 
     struct BufferEntry {
         Page page;
         bool is_dirty;
-        size_t last_accessed; // Para LRU
+        uint32_t last_accessed; // Para LRU
     };
 
-    unordered_map<size_t, BufferEntry> buffer;
+    unordered_map<uint32_t, BufferEntry> buffer;
 
     void evictPage();
 };

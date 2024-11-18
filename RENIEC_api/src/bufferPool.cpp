@@ -8,7 +8,7 @@
 #include <iostream>
 #include <algorithm>
 
-BufferPool::BufferPool(size_t capacity, PageManager& page_manager)
+BufferPool::BufferPool(uint32_t capacity, PageManager& page_manager)
     : capacity(capacity), page_manager(page_manager), current_time(0) {
     // inicialización
 }
@@ -19,7 +19,7 @@ BufferPool::~BufferPool() {
 }
 
 //lee el buffer
-void BufferPool::readPage(size_t page_id, Page& page) {
+void BufferPool::readPage(uint32_t page_id, Page& page) {
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {
         page = it->second.page;
@@ -37,7 +37,7 @@ void BufferPool::readPage(size_t page_id, Page& page) {
 }
 
 
-void BufferPool::writePage(size_t page_id, const Page& page) {
+void BufferPool::writePage(uint32_t page_id, const Page& page) {
     //cout<<"Escribiendo pagina " <<page_id <<"en el buffer"<<endl;
     current_time++; // Incrementar el contador global
     auto it = buffer.find(page_id);
@@ -81,7 +81,7 @@ void BufferPool::evictPage() {
 }
 
 
-size_t BufferPool::allocatePage() {
+uint32_t BufferPool::allocatePage() {
     return page_manager.allocatePage();
 }
 
