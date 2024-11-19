@@ -53,7 +53,7 @@ void BStarTree::createNewTree() {
 }
 
 
-void BStarTree::insert(uint32_t key, uint32_t block_number, uint32_t record_offset_within_block) {
+void BStarTree::insert(uint32_t key, uint64_t block_number, uint32_t record_offset_within_block) {
     Page root;
     buffer_pool.readPage(root_page_id, root);
 
@@ -80,7 +80,7 @@ void BStarTree::insert(uint32_t key, uint32_t block_number, uint32_t record_offs
 
 
 
-bool BStarTree::search(uint32_t key, uint32_t& block_number, uint32_t& record_offset_within_block) {
+bool BStarTree::search(uint32_t key, uint64_t& block_number, uint32_t& record_offset_within_block) {
     uint32_t page_id = root_page_id;
     std::cout << "Iniciando búsqueda en root_page_id: " << root_page_id << std::endl;
     while (true) {
@@ -107,10 +107,10 @@ bool BStarTree::search(uint32_t key, uint32_t& block_number, uint32_t& record_of
         }
 
         if (page.is_leaf) {
-            std::cout << "Llegamos a una hoja sin encontrar la clave." << std::endl;
+            //std::cout << "Llegamos a una hoja sin encontrar la clave." << std::endl;
             return false;
         } else {
-            std::cout << "Descendiendo a la página hijo " << page.children[i] << std::endl;
+            //std::cout << "Descendiendo a la página hijo " << page.children[i] << std::endl;
             page_id = page.children[i];
         }
     }
@@ -125,7 +125,7 @@ void BStarTree::remove(uint32_t key) {
 void BStarTree::insertNonFull(uint32_t page_id, const IndexEntry& entry) {
     Page page;
     buffer_pool.readPage(page_id, page);
-    std::cout << "insertNonFull: Insertando clave " << entry.dni << " en página " << page_id << (page.is_leaf ? " (hoja)" : " (interna)") << std::endl;
+    //std::cout << "insertNonFull: Insertando clave " << entry.dni << " en página " << page_id << (page.is_leaf ? " (hoja)" : " (interna)") << std::endl;
 
     int i = static_cast<int>(page.num_keys) - 1;
 
@@ -138,18 +138,18 @@ void BStarTree::insertNonFull(uint32_t page_id, const IndexEntry& entry) {
         page.entries[i + 1] = entry;
         page.num_keys++;
         buffer_pool.writePage(page_id, page);
-        std::cout << "Clave " << entry.dni << " insertada en página hoja " << page_id << ". Número de claves ahora: " << page.num_keys << std::endl;
+        //std::cout << "Clave " << entry.dni << " insertada en página hoja " << page_id << ". Número de claves ahora: " << page.num_keys << std::endl;
     } else {
         // Encontrar el hijo adecuado
         while (i >= 0 && entry.dni < page.entries[i].dni) {
             i--;
         }
         i++;
-        std::cout << "Descendiendo al hijo " << i << " de la página " << page_id << std::endl;
+        //std::cout << "Descendiendo al hijo " << i << " de la página " << page_id << std::endl;
         Page child;
         buffer_pool.readPage(page.children[i], child);
         if (child.num_keys == MAX_KEYS) {
-            std::cout << "El hijo " << page.children[i] << " está lleno. Necesita dividirse." << std::endl;
+            //std::cout << "El hijo " << page.children[i] << " está lleno. Necesita dividirse." << std::endl;
             splitChild(page_id, i, page.children[i]);
             buffer_pool.readPage(page_id, page);
             if (entry.dni > page.entries[i].dni) {
@@ -166,7 +166,7 @@ void BStarTree::splitChild(uint32_t parent_page_id, uint32_t child_index, uint32
     buffer_pool.readPage(parent_page_id, parent);
     buffer_pool.readPage(child_page_id, child);
     
-    std::cout << "Dividiendo hijo " << child_page_id << " en índice " << child_index << " del padre " << parent_page_id << std::endl;
+    //std::cout << "Dividiendo hijo " << child_page_id << " en índice " << child_index << " del padre " << parent_page_id << std::endl;
     
     uint32_t sibling_page_id = buffer_pool.allocatePage();
     sibling.is_leaf = child.is_leaf;
@@ -199,7 +199,7 @@ void BStarTree::splitChild(uint32_t parent_page_id, uint32_t child_index, uint32
     buffer_pool.writePage(sibling_page_id, sibling);
     buffer_pool.writePage(parent_page_id, parent);
     
-    std::cout << "División completada. Nuevo hermano " << sibling_page_id << " creado." << std::endl;
+    //std::cout << "División completada. Nuevo hermano " << sibling_page_id << " creado." << std::endl;
 }
 
 

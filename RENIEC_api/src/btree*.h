@@ -10,8 +10,8 @@ public:
     BStarTree(BufferPool& buffer_pool);
     ~BStarTree();
 
-    void insert(uint32_t key, uint32_t block_number, uint32_t record_offset_within_block);
-    bool search(uint32_t key, uint32_t& block_number, uint32_t& record_offset_within_block);
+    void insert(uint32_t key, uint64_t block_number, uint32_t record_offset_within_block);
+    bool search(uint32_t key, uint64_t& block_number, uint32_t& record_offset_within_block);
     void remove(uint32_t key);
     void createNewTree();
 private:

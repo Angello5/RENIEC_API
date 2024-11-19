@@ -13,8 +13,8 @@ using namespace std;
 using namespace boost::serialization;
 
 struct BlockIndexEntry{
-    size_t block_number;
-    size_t block_offset;
+    uint64_t block_number;
+    uint64_t block_offset;
     
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version){

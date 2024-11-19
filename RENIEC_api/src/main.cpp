@@ -20,9 +20,9 @@
 using namespace std;
 
 const uint32_t DNI_MIN = 10000000;
-const uint32_t DNI_MAX = 77999999;
+const uint32_t DNI_MAX = 42999999;
 const uint32_t TOTAL_DNIS = DNI_MAX - DNI_MIN + 1;
-const uint32_t PRIME = 100000007;
+const uint64_t PRIME = 100000007;
 const uint32_t BLOCK_SIZE = 1 *1024 * 1024;   //1mb
 const uint32_t AVERAGE_RECORD_SIZE = 200;
 const uint32_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
@@ -67,15 +67,22 @@ const vector<string> marital_statuses = {
     "Soltero(a)", "Casado(a)", "Viudo(a)", "Divorciado(a)"
 };
 
-uint32_t permuteDNI(uint32_t index){
-    uint64_t permuted = (static_cast<uint64_t>(index) * 48271) % PRIME;
-    return static_cast<uint32_t>(permuted);
+uint32_t permuteDNI(uint32_t x){
+    x = ((x ^ 61u) ^ (x >> 16u));
+        x *= 9u;
+        x = x ^ (x >> 4u);
+        x *= 0x27d4eb2du;
+        x = x ^ (x >> 15u);
+        return x;
 }
 // Función para generar un DNI aleatorio
-uint32_t generarDni(uint32_t index) {
-    uint32_t permuted = permuteDNI(index);
-    uint32_t dni = DNI_MIN + (permuted % TOTAL_DNIS);
-    return dni;
+uint32_t generarDni(uint64_t index) {
+    if (index >= TOTAL_DNIS) {
+            throw std::runtime_error("No se pueden generar más DNIs únicos.");
+        }
+        uint32_t permuted = permuteDNI(index);
+        uint32_t dni = DNI_MIN + permuted % TOTAL_DNIS;
+        return dni;
 }
 
 // Generador de números de Telefono
@@ -102,7 +109,7 @@ string generarMarital_status() {
 }
 
 // Función para generar una persona
-Person generarPersona(uint32_t index) {
+Person generarPersona(uint64_t index) {
     Person persona;
     persona.dni = generarDni(index);
     persona.phone = generarPhone();
@@ -125,13 +132,14 @@ Person generarPersona(uint32_t index) {
 }
 
 // Función para generar datos masivos y cargarlos en el sistema
-void generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint32_t num_personas) {
+void generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t num_personas) {
     cout << "Generando y cargando datos..." << endl;
     auto start = chrono::high_resolution_clock::now();
 
-    for (uint32_t i = 0; i < num_personas; ++i) {
+    for (uint64_t i = 0; i < num_personas; ++i) {
         Person persona = generarPersona(i);
-        uint32_t block_number, record_offset_within_block;
+        uint64_t block_number;
+        uint32_t record_offset_within_block;
         dataManager.writePerson(persona, block_number, record_offset_within_block);
         tree.insert(persona.dni, block_number, record_offset_within_block);
 
@@ -209,7 +217,8 @@ void insertUser(BStarTree& btree, DataManager& dataManager) {
     std::getline(cin, persona.marital_status);
     
     auto start = chrono::high_resolution_clock::now();
-    uint32_t block_number, record_offset_within_block;
+    uint64_t block_number;
+    uint32_t record_offset_within_block;
     dataManager.writePerson(persona, block_number, record_offset_within_block);
     btree.insert(persona.dni, block_number, record_offset_within_block);
 
@@ -225,7 +234,8 @@ void searchUser(BStarTree& tree, DataManager& dataManager) {
     cin >> dni;
     
     auto start = chrono::high_resolution_clock::now();
-    uint32_t block_number, record_offset_within_block;
+    uint64_t block_number;
+    uint32_t record_offset_within_block;
     if (tree.search(dni, block_number, record_offset_within_block)) {
         Person persona;
         if (dataManager.readPerson(block_number, record_offset_within_block, persona)) {
@@ -251,7 +261,8 @@ void removeUser(BStarTree& tree, DataManager& dataManager) {
     cin >> dni;
 
     auto start = chrono::high_resolution_clock::now();
-    uint32_t block_number, record_offset_within_block;
+    uint64_t block_number;
+    uint32_t record_offset_within_block;
     if (tree.search(dni, block_number, record_offset_within_block)) {
         Person persona;
         if (dataManager.readPerson(block_number, record_offset_within_block, persona)) {
@@ -274,7 +285,7 @@ void imprimirPrimerosRegistros(DataManager& dataManager) {
     uint32_t records_read = 0;
     uint32_t block_number = 0;
 
-    uint32_t total_blocks = dataManager.getTotalBlocks();
+    uint64_t total_blocks = dataManager.getTotalBlocks();
 
     while (records_read < records_needed && block_number < total_blocks) {
         std::vector<Person> records;
@@ -329,12 +340,12 @@ int main() {
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
         
-        //uint32_t num_personas = 1000; // para probar 1k
-        //uint32_t num_personas = 10000;   //para probar 10k
-        uint32_t num_personas = 100000; // para probar 100k
-        //uint32_t num_personas = 1000000; // para probar 1 millon
-        //uint32_t num_personas = 10000000; // para probar 10 millones
-        //uint32_t num_personas = 33000000; // para probar 33 millones
+        //uint64_t num_personas = 1000; // para probar 1k
+        //uint64_t num_personas = 10000;   //para probar 10k
+        //uint64_t num_personas = 100000; // para probar 100k
+        uint64_t num_personas = 1000000; // para probar 1 millon
+        //uint64_t num_personas = 10000000; // para probar 10 millones
+        //uint64_t num_personas = 33000000; // para probar 33 millones
         
         
         if(!dataExiste()){
@@ -342,7 +353,8 @@ int main() {
             
             //Prueba de busqueda
             uint32_t dni_a_buscar = generarDni(0); // O el DNI del primer registro
-                uint32_t block_number, record_offset_within_block;
+            uint64_t block_number;
+            uint32_t record_offset_within_block;
                 if (btree.search(dni_a_buscar, block_number, record_offset_within_block)) {
                     Person persona;
                     if (data_manager.readPerson(block_number, record_offset_within_block, persona)) {
@@ -358,7 +370,7 @@ int main() {
                     std::cout << "Usuario no encontrado.\n";
                 }
         }else{
-            cout<<"Los datos ya existen, Se carga desde los archivos. (arbol persistente(falta implementar))"<<endl;
+            cout<<"Los datos ya existen, Se carga desde los archivos."<<endl;
         }
 
         int opcion;

@@ -1,6 +1,8 @@
 #include "dataManager.h"
 #include <sstream>
 #include <iostream>
+#include <cstdint>
+#include <algorithm>
 
 using namespace std;
 
@@ -50,10 +52,10 @@ DataManager::~DataManager() {
 }
 
 
-void DataManager::writePerson(const Person& person, uint32_t& out_block_number, uint32_t& out_record_offset_within_block) {
+void DataManager::writePerson(const Person& person, uint64_t& out_block_number, uint32_t& out_record_offset_within_block) {
     block_records.push_back(person);
     out_block_number = block_number;
-    out_record_offset_within_block = block_records.size() - 1;
+    out_record_offset_within_block = static_cast<uint32_t>(block_records.size() - 1);
 
     //std::cout << "Agregado persona con DNI: " << person.dni << " a block_records. Block number: " << block_number << ", record offset: " << out_record_offset_within_block << std::endl;
     
@@ -92,10 +94,10 @@ void DataManager::compressAndWriteBlock() {
             return;
         }
     
-    uint32_t block_offset = data_file.tellp();
+    streamoff block_offset = data_file.tellp();
     
     //cambiar de compresed_data a serialized_data
-    uint32_t data_size = static_cast<uint32_t>(serialized_data.size());
+    uint64_t data_size = serialized_data.size();
     data_file.write(reinterpret_cast<char*>(&data_size), sizeof(data_size));
     if (data_file.fail()) {
             std::cerr << "Error al escribir el tamaño de los datos en el archivo de datos en el bloque " << block_number << std::endl;
@@ -122,7 +124,7 @@ void DataManager::compressAndWriteBlock() {
     //cout<<"Bloque escrito. block_number: "<< block_number << ", total_blocks" <<total_blocks<<endl;
 }
 
-uint32_t DataManager::getBlockOffset(uint32_t block_number) {
+uint64_t DataManager::getBlockOffset(uint64_t block_number) {
     if (block_number >= total_blocks) {
         // Manejar el error: bloque no existente
         return 0;
@@ -135,11 +137,11 @@ uint32_t DataManager::getBlockOffset(uint32_t block_number) {
     return entry.block_offset;
 }
 
-uint32_t DataManager::getTotalBlocks() const {
+uint64_t DataManager::getTotalBlocks() const {
     return total_blocks;
 }
 
-bool DataManager::loadBlock(uint32_t block_number, std::vector<Person>& records) {
+bool DataManager::loadBlock(uint64_t block_number, std::vector<Person>& records) {
     //cambiar la descompresion del bloque
     
     if (block_number >= total_blocks) {
@@ -148,10 +150,10 @@ bool DataManager::loadBlock(uint32_t block_number, std::vector<Person>& records)
            return false;
        }
 
-       uint32_t block_offset = getBlockOffset(block_number);
+       uint64_t block_offset = getBlockOffset(block_number);
        data_file.seekg(block_offset);
 
-       uint32_t data_size;
+       uint64_t data_size;
        data_file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
 
        if (data_file.fail()) {
@@ -185,7 +187,7 @@ bool DataManager::loadBlock(uint32_t block_number, std::vector<Person>& records)
        return true;
 }
 
-bool DataManager::readPerson(uint32_t block_number, uint32_t record_offset_within_block, Person& person) {
+bool DataManager::readPerson(uint64_t block_number, uint32_t record_offset_within_block, Person& person) {
     std::vector<Person> records;
     loadBlock(block_number, records);
 
@@ -197,7 +199,7 @@ bool DataManager::readPerson(uint32_t block_number, uint32_t record_offset_withi
     }
 }
 
-void DataManager::updatePerson(uint32_t block_number, uint32_t record_offset_within_block, const Person& person) {
+void DataManager::updatePerson(uint64_t block_number, uint32_t record_offset_within_block, const Person& person) {
     std::vector<Person> records;
     loadBlock(block_number, records);
 
@@ -224,9 +226,9 @@ void DataManager::updatePerson(uint32_t block_number, uint32_t record_offset_wit
         }
 
         // Escribir el bloque comprimido al archivo en su posición original
-        uint32_t block_offset = getBlockOffset(block_number);
+        uint64_t block_offset = getBlockOffset(block_number);
         data_file.seekp(block_offset);
-        uint32_t data_size = static_cast<uint32_t>(compressed_data.size());
+        size_t data_size = compressed_data.size();
         data_file.write(reinterpret_cast<char*>(&data_size), sizeof(data_size));
         data_file.write(compressed_data.data(), data_size);
     } else {
@@ -236,7 +238,7 @@ void DataManager::updatePerson(uint32_t block_number, uint32_t record_offset_wit
 
 void DataManager::loadBlockIndex() {
     index_file.seekg(0, std::ios::end);
-    uint32_t index_size = index_file.tellg();
+    streamoff index_size = index_file.tellg();
     if (index_size == static_cast<uint32_t>(-1)) {
         std::cerr << "Error al obtener el tamaño del archivo de índice." << std::endl;
         total_blocks = 0;
@@ -256,7 +258,7 @@ void DataManager::loadBlockIndex() {
 }
 
 
-void DataManager::updateBlockIndex(uint32_t block_number, uint32_t block_offset) {
+void DataManager::updateBlockIndex(uint64_t block_number, uint64_t block_offset) {
     BlockIndexEntry entry = {block_number, block_offset};
     index_file.seekp(block_number * sizeof(BlockIndexEntry));
     if (index_file.fail()) {
@@ -279,7 +281,8 @@ void DataManager::updateBlockIndex(uint32_t block_number, uint32_t block_offset)
             return;
         }
     
-    total_blocks = std::max(total_blocks, block_number + 1);
+    total_blocks = std::max(total_blocks, static_cast<uint64_t>(    block_number) + 1);
+
     
     //cout<<"Actualiazando indice, block_number: "<<block_number<<", block offset "<<block_offset<<", total_blocks: "<<total_blocks <<endl;
 }

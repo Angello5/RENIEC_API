@@ -14,11 +14,11 @@ using namespace std;
 
 struct IndexEntry {
     uint32_t dni;
-    uint32_t block_number;
+    uint64_t block_number;
     uint32_t record_offset_within_block;
 
     IndexEntry() : dni(0), block_number(0), record_offset_within_block(0) {}
-    IndexEntry(uint32_t dni, uint32_t block_number, uint32_t record_offset)
+    IndexEntry(uint32_t dni, uint64_t block_number, uint32_t record_offset)
         : dni(dni), block_number(block_number), record_offset_within_block(record_offset) {}
 };
 
@@ -28,27 +28,27 @@ public:
     ~DataManager();
 
     
-    void writePerson(const Person& person, uint32_t& block_number, uint32_t& record_offset_within_block);
-    bool readPerson(uint32_t block_number, uint32_t record_offset_within_block, Person& person);
-    void updatePerson(uint32_t block_number, uint32_t record_offset_within_block, const Person& person);
-    uint32_t getTotalBlocks() const;
-    bool loadBlock(uint32_t block_number, std::vector<Person>& records);
+    void writePerson(const Person& person, uint64_t& block_number, uint32_t& record_offset_within_block);
+    bool readPerson(uint64_t block_number, uint32_t record_offset_within_block, Person& person);
+    void updatePerson(uint64_t block_number, uint32_t record_offset_within_block, const Person& person);
+    uint64_t getTotalBlocks() const;
+    bool loadBlock(uint64_t block_number, std::vector<Person>& records);
 private:
     fstream data_file;
     string data_filename;
     uint32_t records_per_block;
-    uint32_t block_number;
+    uint64_t block_number;
     vector<Person> block_records;
     fstream index_file;
     string index_filename;
-    uint32_t total_blocks;
+    uint64_t total_blocks;
     
     
     
     void compressAndWriteBlock();
-    uint32_t getBlockOffset(uint32_t block_number);
+    uint64_t getBlockOffset(uint64_t block_number);
     void loadBlockIndex();
-    void updateBlockIndex(uint32_t block_number, uint32_t block_offset);
+    void updateBlockIndex(uint64_t block_number, uint64_t block_offset);
 };
 
 #endif // DATAMANAGER_H
