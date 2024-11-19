@@ -109,9 +109,9 @@ string generarMarital_status() {
 }
 
 // Función para generar una persona
-Person generarPersona(uint64_t index) {
+Person generarPersona() {
     Person persona;
-    persona.dni = generarDni(index);
+    //persona.dni = generarDni(index);
     persona.phone = generarPhone();
     persona.name = names[rand() % names.size()];
     persona.surname = surnames[rand() % surnames.size()];
@@ -132,12 +132,27 @@ Person generarPersona(uint64_t index) {
 }
 
 // Función para generar datos masivos y cargarlos en el sistema
-void generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t num_personas) {
+uint32_t generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t num_personas) {
     cout << "Generando y cargando datos..." << endl;
     auto start = chrono::high_resolution_clock::now();
-
+    
+    if (num_personas > TOTAL_DNIS) {
+            std::cerr << "Error: No es posible generar más de " << TOTAL_DNIS << " DNIs únicos." << std::endl;
+        }
+    
+    vector<uint32_t> dni_list(TOTAL_DNIS);
+        for (uint32_t i = 0; i < TOTAL_DNIS; ++i) {
+            dni_list[i] = DNI_MIN + i;
+        }
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::shuffle(dni_list.begin(), dni_list.end(), gen);
+    
+    uint32_t dni_prueba = 0;
+    
     for (uint64_t i = 0; i < num_personas; ++i) {
-        Person persona = generarPersona(i);
+        Person persona = generarPersona();
+        persona.dni = dni_list[i];
         uint64_t block_number;
         uint32_t record_offset_within_block;
         dataManager.writePerson(persona, block_number, record_offset_within_block);
@@ -155,6 +170,8 @@ void generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t num
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> duration = end - start;
     cout << "Generación y carga completadas en " << duration.count() << " segundos.\n";
+    
+    return dni_prueba;
 }
 
 void printUser(const Person* persona) {
@@ -182,7 +199,15 @@ void insertUser(BStarTree& btree, DataManager& dataManager) {
     cout << "Ingresa DNI: ";
     cin >> persona.dni;
     cin.ignore(); // Ignora el carácter de nueva línea residual
-
+    
+    //verifica si el DNI ya existe
+    uint64_t block_number;
+    uint32_t record_offset_within_block;
+    if (btree.search(persona.dni, block_number, record_offset_within_block)) {
+        cout << "El DNI ingresado ya existe en el sistema.\n";
+        return;
+    }
+    
     cout << "Ingresa Nombre: ";
     std::getline(cin, persona.name);
 
@@ -217,8 +242,6 @@ void insertUser(BStarTree& btree, DataManager& dataManager) {
     std::getline(cin, persona.marital_status);
     
     auto start = chrono::high_resolution_clock::now();
-    uint64_t block_number;
-    uint32_t record_offset_within_block;
     dataManager.writePerson(persona, block_number, record_offset_within_block);
     btree.insert(persona.dni, block_number, record_offset_within_block);
 
@@ -231,7 +254,11 @@ void insertUser(BStarTree& btree, DataManager& dataManager) {
 void searchUser(BStarTree& tree, DataManager& dataManager) {
     uint32_t dni;
     cout << "Ingresa DNI a buscar: ";
-    cin >> dni;
+    while(!(cin >> dni)){
+        cout<< "Entrada invalida ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
     
     auto start = chrono::high_resolution_clock::now();
     uint64_t block_number;
@@ -349,10 +376,9 @@ int main() {
         
         
         if(!dataExiste()){
-            generateAndLoadData(btree, data_manager, num_personas);
-            
+            uint32_t dni_a_buscar = generateAndLoadData(btree, data_manager, num_personas);
+
             //Prueba de busqueda
-            uint32_t dni_a_buscar = generarDni(0); // O el DNI del primer registro
             uint64_t block_number;
             uint32_t record_offset_within_block;
                 if (btree.search(dni_a_buscar, block_number, record_offset_within_block)) {

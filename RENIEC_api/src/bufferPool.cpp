@@ -24,11 +24,15 @@ void BufferPool::readPage(uint32_t page_id, Page& page) {
     if (it != buffer.end()) {
         page = it->second.page;
         //std::cout << "Página " << page_id << " leída desde el buffer." << std::endl;
+        it->second.last_accessed = +current_time;
     } else {
         if (page_manager.readPage(page_id, page)) {
             //std::cout << "Página " << page_id << " leída desde el disco." << std::endl;
             // Agregar la página al buffer
-            buffer[page_id] = {page, false}; // No está sucia
+            if(buffer.size() >= capacity){
+                evictPage();
+            }
+            buffer[page_id] = {page, false, ++current_time}; // No está sucia
             // Manejar política de reemplazo si el buffer está lleno
         } else {
             std::cerr << "Error al leer la página " << page_id << " desde el disco." << std::endl;

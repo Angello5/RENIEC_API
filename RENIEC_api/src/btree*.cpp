@@ -166,40 +166,40 @@ void BStarTree::splitChild(uint32_t parent_page_id, uint32_t child_index, uint32
     buffer_pool.readPage(parent_page_id, parent);
     buffer_pool.readPage(child_page_id, child);
     
-    //std::cout << "Dividiendo hijo " << child_page_id << " en índice " << child_index << " del padre " << parent_page_id << std::endl;
-    
     uint32_t sibling_page_id = buffer_pool.allocatePage();
     sibling.is_leaf = child.is_leaf;
-    sibling.num_keys = MIN_KEYS; // Suponiendo que MIN_KEYS = MAX_KEYS / 2
+    sibling.num_keys = MIN_KEYS - 1; // Ajuste si MIN_KEYS = (MAX_KEYS + 1) / 2
 
     // Mover la mitad de las entradas al hermano
-    for (uint32_t j = 0; j < MIN_KEYS; j++) {
-        sibling.entries[j] = child.entries[j + MIN_KEYS + 1];
+    for (uint32_t j = 0; j < sibling.num_keys; j++) {
+        sibling.entries[j] = child.entries[j + MIN_KEYS];
     }
 
     if (!child.is_leaf) {
-        for (uint32_t j = 0; j <= MIN_KEYS; j++) {
-            sibling.children[j] = child.children[j + MIN_KEYS + 1];
+        for (uint32_t j = 0; j < MIN_KEYS; j++) {
+            sibling.children[j] = child.children[j + MIN_KEYS];
         }
     }
 
-    child.num_keys = MIN_KEYS;
+    child.num_keys = MIN_KEYS - 1;
 
     // Insertar la nueva entrada en el padre
-    for (uint32_t j = parent.num_keys; j > child_index; j--) {
-        parent.entries[j] = parent.entries[j - 1];
+    for (int32_t j = parent.num_keys; j >= static_cast<int32_t>(child_index + 1); j--) {
         parent.children[j + 1] = parent.children[j];
     }
-    parent.entries[child_index] = child.entries[MIN_KEYS];
     parent.children[child_index + 1] = sibling_page_id;
+
+    for (int32_t j = parent.num_keys - 1; j >= static_cast<int32_t>(child_index); j--) {
+        parent.entries[j + 1] = parent.entries[j];
+    }
+    parent.entries[child_index] = child.entries[MIN_KEYS - 1];
     parent.num_keys++;
 
     // Escribir las páginas actualizadas
     buffer_pool.writePage(child_page_id, child);
     buffer_pool.writePage(sibling_page_id, sibling);
     buffer_pool.writePage(parent_page_id, parent);
-    
-    //std::cout << "División completada. Nuevo hermano " << sibling_page_id << " creado." << std::endl;
 }
+
 
 
