@@ -331,7 +331,7 @@ void imprimirPrimerosRegistros(DataManager& dataManager) {
     }
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> duration = end - start;
-    cout << "Tiempo en mostrar los 10 primeros usuarios:  " << duration.count();
+    cout << "Tiempo en mostrar los 10 primeros usuarios:  \n" << duration.count();
 }
 
 bool dataExiste() {

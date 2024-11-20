@@ -20,12 +20,16 @@ public:
     ~PageManager();
 
     uint32_t allocatePage();
-    void readPage(uint32_t page_id, Page& page);
-    void writePage(uint32_t page_id, const Page& page);
+    bool readPage(uint32_t page_id, Page& page);
+    bool writePage(uint32_t page_id, const Page& page);
+    
+    void savePageIndex();
+    void loadPageIndex();
 
 private:
     fstream file;
     string filename;
+    unordered_map<uint32_t, uint64_t> page_offsets;
     set<uint32_t> free_pages;
     uint32_t num_pages;
 

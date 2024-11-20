@@ -11,25 +11,21 @@
 using namespace std;
 
 PageManager::PageManager(const std::string& filename)
-    : filename(filename), num_pages(0) {
+: filename(filename), num_pages(0) {
+    file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
+    
+    if (!file) {
+        // El archivo no existe, crearlo
+        file.open(filename, std::ios::out | std::ios::binary);
+        file.close();
         file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
-
-        if (!file) {
-                // El archivo no existe, crearlo
-                file.open(filename, std::ios::out | std::ios::binary);
-                file.close();
-                file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
-                num_pages = 0;
-            } else {
-                // El archivo existe, calcular num_pages
-                file.seekg(0, std::ios::end);
-                std::streampos file_size = file.tellg();
-                num_pages = static_cast<uint32_t>(file_size) / PAGE_SIZE;
-                file.seekg(0, std::ios::beg);
-            }
+        num_pages = 0;
+    }
+    loadPageIndex();
 }
 
 PageManager::~PageManager() {
+    savePageIndex();
     file.close();
 }
 
@@ -49,38 +45,61 @@ uint32_t PageManager::allocatePage() {
 }
 
 
-void PageManager::readPage(uint32_t page_id, Page& page) {
-    
-    std::ifstream file(filename, std::ios::binary);
-       if (!file) {
-           // Manejar error
-       }
-       file.seekg(page_id * PAGE_SIZE, std::ios::beg);
-       if (file.fail()) {
-           // Manejar error
-       }
-        
-    std::cout << "Leyendo página " << page_id << " del disco." << std::endl;
-        std::cout << "is_leaf: " << static_cast<int>(page.is_leaf)
-                  << ", num_keys: " << page.num_keys << std::endl;
-
-       boost::archive::binary_iarchive ia(file);
-       ia >> page;
+bool PageManager::readPage(uint32_t page_id, Page& page) {
+    try {
+            auto it = page_offsets.find(page_id);
+            if (it == page_offsets.end()) {
+                std::cerr << "No se encontró el page_id " << page_id << " en el índice." << std::endl;
+                return false;
+            }
+            uint64_t offset = it->second;
+            file.seekg(offset, std::ios::beg);
+            if (file.fail()) {
+                std::cerr << "Error al posicionar el puntero de lectura en el archivo." << std::endl;
+                return false;
+            }
+            boost::archive::binary_iarchive ia(file);
+            ia >> page;
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "Excepción al leer la página: " << e.what() << std::endl;
+            return false;
+        }
 }
 
 
-void PageManager::writePage(uint32_t page_id, const Page& page) {
-    std::ofstream file(filename, std::ios::binary | std::ios::in | std::ios::out);
-        if (!file) {
-            // Manejar error
+bool PageManager::writePage(uint32_t page_id, const Page& page) {
+    try {
+            file.seekp(0, std::ios::end);
+            if (file.fail()) {
+                std::cerr << "Error al posicionar el puntero de escritura al final del archivo." << std::endl;
+                return false;
+            }
+            uint64_t offset = file.tellp();
+            boost::archive::binary_oarchive oa(file);
+            oa << page;
+            page_offsets[page_id] = offset;
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "Excepción al escribir la página: " << e.what() << std::endl;
+            return false;
         }
-        file.seekp(page_id * PAGE_SIZE, std::ios::beg);
-        if (file.fail()) {
-            // Manejar error
+    }
+
+void PageManager::savePageIndex(){
+    ofstream index_file("page_index.bin", ios::binary);
+    boost::archive::binary_oarchive oa(index_file);
+    oa <<page_offsets;
+}
+void PageManager::loadPageIndex(){
+    ifstream index_file("page_index.bin", ios::binary);
+    if (index_file) {
+        boost::archive::binary_iarchive ia(index_file);
+        ia>>page_offsets;
+        
+        //actuializa num_pages al maximo de page_id + 1
+        for (const auto& entry : page_offsets) {
+            num_pages = entry.first + 1;
         }
-    std::cout << "Escribiendo página " << page_id << " al disco." << std::endl;
-        std::cout << "is_leaf: " << static_cast<int>(page.is_leaf)
-                  << ", num_keys: " << page.num_keys << std::endl;
-        boost::archive::binary_oarchive oa(file);
-        oa << page;
+    }
 }
