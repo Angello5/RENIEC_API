@@ -26,8 +26,8 @@ const uint32_t TOTAL_DNIS = DNI_MAX - DNI_MIN + 1;
 const uint32_t BLOCK_SIZE = 1 *1024 * 1024;   //1mb
 const uint32_t AVERAGE_RECORD_SIZE = 200;
 const uint32_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
-const string DATA_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/user.bin";
-const string INDEX_FILENAME = "/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/block_index.bin";
+const string DATA_FILENAME = "data/user.bin";
+const string INDEX_FILENAME = "data/block_index.bin";
 
 const vector<string> names = {
     "Juan", "María", "Pedro", "Luis"
@@ -337,8 +337,8 @@ void imprimirPrimerosRegistros(DataManager& dataManager) {
 bool dataExiste() {
     std::ifstream dataFile(DATA_FILENAME);
        std::ifstream indexFile(INDEX_FILENAME);
-       std::ifstream treePagesFile("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/tree_pages.bin");
-       std::ifstream rootFile("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/btree_root.bin");
+       std::ifstream treePagesFile("data/tree_pages.bin");
+       std::ifstream rootFile("data/btree_root.bin");
        return dataFile.good() && indexFile.good() && treePagesFile.good() && rootFile.good();
 }
 
@@ -364,8 +364,8 @@ int main() {
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
         
-        //size_t num_personas = 200; // para probar 1k
-        uint64_t num_personas = 10000;   //para probar 10k
+        size_t num_personas = 1000; // para probar 1k
+        //uint64_t num_personas = 10000;   //para probar 10k
         //uint64_t num_personas = 100000; // para probar 100k
         //uint64_t num_personas = 1000000; // para probar 1 millon
         //uint64_t num_personas = 10000000; // para probar 10 millones
@@ -373,8 +373,9 @@ int main() {
         
         
         if(!dataExiste()){
-            uint32_t dni_a_buscar = generateAndLoadData(btree, data_manager, num_personas);
+            generateAndLoadData(btree, data_manager, num_personas);
 
+            /*
             //Prueba de busqueda
             uint64_t block_number;
             uint32_t record_offset_within_block;
@@ -392,6 +393,7 @@ int main() {
                 } else {
                     std::cout << "Usuario no encontrado.\n";
                 }
+            */
         }else{
             cout<<"Los datos ya existen, Se carga desde los archivos."<<endl;
         }

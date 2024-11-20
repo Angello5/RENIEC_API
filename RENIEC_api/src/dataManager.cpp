@@ -136,6 +136,8 @@ void DataManager::compressAndWriteBlock() {
     block_number++;
     cout << "Después de escribir bloque, block_number: " << block_number << ", total_blocks: " << total_blocks << std::endl;
 
+    std::cout << "Tamaño de los datos serializados: " << serialized_data.size() << " bytes." << std::endl;
+
 }
 
 uint64_t DataManager::getBlockOffset(uint64_t block_number) {

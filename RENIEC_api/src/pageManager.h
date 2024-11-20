@@ -10,6 +10,12 @@
 #include <fstream>
 #include <string>
 #include <set>
+#include <map>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/map.hpp>
 #include "page.h"
 
 using namespace std;
@@ -29,7 +35,7 @@ public:
 private:
     fstream file;
     string filename;
-    unordered_map<uint32_t, uint64_t> page_offsets;
+    std::map<uint32_t, uint64_t> page_offsets;
     set<uint32_t> free_pages;
     uint32_t num_pages;
 

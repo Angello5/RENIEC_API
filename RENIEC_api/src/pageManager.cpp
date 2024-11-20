@@ -87,7 +87,7 @@ bool PageManager::writePage(uint32_t page_id, const Page& page) {
     }
 
 void PageManager::savePageIndex(){
-    ofstream index_file("page_index.bin", ios::binary);
+    ofstream index_file("data/page_index.bin", ios::binary);
     boost::archive::binary_oarchive oa(index_file);
     oa <<page_offsets;
 }
