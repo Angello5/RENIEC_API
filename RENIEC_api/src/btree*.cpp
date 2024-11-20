@@ -50,6 +50,7 @@ void BStarTree::createNewTree() {
     std::fill(std::begin(root.children), std::end(root.children), 0);
     root_page_id = buffer_pool.allocatePage();
     buffer_pool.writePage(root_page_id, root);
+    buffer_pool.flush();
 }
 
 
@@ -67,10 +68,12 @@ void BStarTree::insert(uint32_t key, uint64_t block_number, uint32_t record_offs
         new_root.num_keys = 0;
         new_root.children[0] = root_page_id;
 
+        buffer_pool.writePage(new_root_page_id, new_root);
+        
         splitChild(new_root_page_id, 0, root_page_id);
 
         root_page_id = new_root_page_id;
-        buffer_pool.writePage(root_page_id, new_root);
+        
 
         insertNonFull(root_page_id, entry);
     } else {
@@ -199,6 +202,7 @@ void BStarTree::splitChild(uint32_t parent_page_id, uint32_t child_index, uint32
     buffer_pool.writePage(child_page_id, child);
     buffer_pool.writePage(sibling_page_id, sibling);
     buffer_pool.writePage(parent_page_id, parent);
+    buffer_pool.flush();
 }
 
 

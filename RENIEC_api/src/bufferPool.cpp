@@ -23,11 +23,11 @@ void BufferPool::readPage(uint32_t page_id, Page& page) {
     auto it = buffer.find(page_id);
     if (it != buffer.end()) {
         page = it->second.page;
-        //std::cout << "Página " << page_id << " leída desde el buffer." << std::endl;
+        std::cout << "Página " << page_id << " leída desde el buffer." << std::endl;
         it->second.last_accessed = +current_time;
     } else {
         if (page_manager.readPage(page_id, page)) {
-            //std::cout << "Página " << page_id << " leída desde el disco." << std::endl;
+            std::cout << "Página " << page_id << " leída desde el disco." << std::endl;
             // Agregar la página al buffer
             if(buffer.size() >= capacity){
                 evictPage();
@@ -86,7 +86,9 @@ void BufferPool::evictPage() {
 
 
 uint32_t BufferPool::allocatePage() {
-    return page_manager.allocatePage();
+    uint32_t page_id = page_manager.allocatePage();
+    std::cout << "Asignada nueva página con page_id: " << page_id << std::endl;
+    return page_id;
 }
 
 

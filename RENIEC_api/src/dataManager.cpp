@@ -3,39 +3,51 @@
 #include <iostream>
 #include <cstdint>
 #include <algorithm>
+#include <sys/stat.h>
 
 using namespace std;
 
+bool file_exists(const std::string& filename) {
+    struct stat buffer;
+    return (stat(filename.c_str(), &buffer) == 0);
+}
+
 DataManager::DataManager(const std::string& data_filename, const std::string& index_filename, uint32_t records_per_block)
     : data_filename(data_filename), index_filename(index_filename), records_per_block(records_per_block), block_number(0), total_blocks(0) {
-    data_file.open(data_filename, std::ios::in | std::ios::out | std::ios::binary);
-    if (!data_file) {
-        // Si el archivo no existe, créalo
-        data_file.clear(); // Limpiar flags de error
-        data_file.open(data_filename, std::ios::out | std::ios::binary);
-        data_file.close();
+        
         data_file.open(data_filename, std::ios::in | std::ios::out | std::ios::binary);
-    }
-        if (!data_file.is_open()) {
+            if (!data_file.is_open()) {
+                // Si el archivo no existe, créalo
+                data_file.clear(); // Limpiar flags de error
+                data_file.open(data_filename, std::ios::out | std::ios::binary);
+                data_file.close();
+                data_file.open(data_filename, std::ios::in | std::ios::out | std::ios::binary);
+            }
+            if (!data_file.is_open()) {
                 std::cerr << "Error: No se pudo abrir el archivo de datos " << data_filename << std::endl;
                 throw std::runtime_error("No se pudo abrir el archivo de datos");
             }
-        
-    index_file.open(index_filename, std::ios::in | std::ios::out | std::ios::binary);
-    if (!index_file) {
-        // Si el archivo no existe, créalo
-        index_file.clear(); // Limpiar flags de error
-        index_file.open(index_filename, std::ios::out | std::ios::binary);
-        index_file.close();
-        index_file.open(index_filename, std::ios::in | std::ios::out | std::ios::binary);
-    }
-        
-        if (!index_file.is_open()) {
+
+            // Abrir archivo de índice
+            if (file_exists(index_filename)) {
+                // Si el archivo existe, ábrelo sin truncar
+                index_file.open(index_filename, std::ios::in | std::ios::out | std::ios::binary);
+            } else {
+                // Si el archivo no existe, créalo
+                index_file.open(index_filename, std::ios::out | std::ios::binary);
+                index_file.close();
+                index_file.open(index_filename, std::ios::in | std::ios::out | std::ios::binary);
+            }
+            if (!index_file.is_open()) {
                 std::cerr << "Error: No se pudo abrir el archivo de índice " << index_filename << std::endl;
                 throw std::runtime_error("No se pudo abrir el archivo de índice");
             }
-        
-    loadBlockIndex();
+
+            loadBlockIndex();
+
+            // Inicializar block_number al total de bloques existentes
+            block_number = total_blocks;
+            std::cout << "Constructor DataManager: block_number = " << block_number << ", total_blocks = " << total_blocks << std::endl;
 }
 
 
@@ -43,6 +55,7 @@ DataManager::DataManager(const std::string& data_filename, const std::string& in
 DataManager::~DataManager() {
     if (!block_records.empty()) {
         compressAndWriteBlock();
+        block_records.clear();
     }
     data_file.flush();
     data_file.close();
@@ -116,26 +129,52 @@ void DataManager::compressAndWriteBlock() {
             data_file.clear();
             return;
         }
-    
+    cout << "Escribiendo bloque número: " << block_number << " en offset: " << block_offset << std::endl;
+
     updateBlockIndex(block_number, block_offset);
     
     block_number++;
-    
-    //cout<<"Bloque escrito. block_number: "<< block_number << ", total_blocks" <<total_blocks<<endl;
+    cout << "Después de escribir bloque, block_number: " << block_number << ", total_blocks: " << total_blocks << std::endl;
+
 }
 
 uint64_t DataManager::getBlockOffset(uint64_t block_number) {
     if (block_number >= total_blocks) {
-        // Manejar el error: bloque no existente
+        std::cerr << "Error: el bloque " << block_number << " no existe. Total de bloques: " << total_blocks << std::endl;
         return 0;
     }
 
-    BlockIndexEntry entry;
-    index_file.seekg(block_number * sizeof(BlockIndexEntry));
-    index_file.read(reinterpret_cast<char*>(&entry), sizeof(BlockIndexEntry));
+    index_file.seekg(block_number * (sizeof(uint64_t) * 2), std::ios::beg);
+    if (index_file.fail()) {
+        std::cerr << "Error al hacer seekg en el archivo de índice en el bloque " << block_number << std::endl;
+        index_file.clear();
+        return 0;
+    }
 
-    return entry.block_offset;
+    uint64_t stored_block_number;
+    index_file.read(reinterpret_cast<char*>(&stored_block_number), sizeof(uint64_t));
+    if (index_file.fail()) {
+        std::cerr << "Error al leer block_number del archivo de índice en el bloque " << block_number << std::endl;
+        index_file.clear();
+        return 0;
+    }
+
+    uint64_t block_offset;
+    index_file.read(reinterpret_cast<char*>(&block_offset), sizeof(uint64_t));
+    if (index_file.fail()) {
+        std::cerr << "Error al leer block_offset del archivo de índice en el bloque " << block_number << std::endl;
+        index_file.clear();
+        return 0;
+    }
+
+    if (stored_block_number != block_number) {
+        std::cerr << "Error: block_number inconsistente en el archivo de índice. Esperado: " << block_number << ", encontrado: " << stored_block_number << std::endl;
+        return 0;
+    }
+
+    return block_offset;
 }
+
 
 uint64_t DataManager::getTotalBlocks() const {
     return total_blocks;
@@ -151,6 +190,7 @@ bool DataManager::loadBlock(uint64_t block_number, std::vector<Person>& records)
        }
 
        uint64_t block_offset = getBlockOffset(block_number);
+        cout << "Cargando bloque: " << block_number << ", block_offset: " << block_offset << std::endl;
        data_file.seekg(block_offset);
 
        uint64_t data_size;
@@ -239,50 +279,57 @@ void DataManager::updatePerson(uint64_t block_number, uint32_t record_offset_wit
 void DataManager::loadBlockIndex() {
     index_file.seekg(0, std::ios::end);
     streamoff index_size = index_file.tellg();
-    if (index_size == static_cast<uint32_t>(-1)) {
+    if (index_size == static_cast<streamoff>(-1)) {
         std::cerr << "Error al obtener el tamaño del archivo de índice." << std::endl;
         total_blocks = 0;
         return;
     }
 
-    if (index_size % sizeof(BlockIndexEntry) != 0) {
-        std::cerr << "Error: Tamaño del archivo de índice no es múltiplo del tamaño de BlockIndexEntry." << std::endl;
+    const size_t entry_size = sizeof(uint64_t) * 2;
+    if (index_size % entry_size != 0) {
+        std::cerr << "Error: Tamaño del archivo de índice no es múltiplo del tamaño de una entrada de índice." << std::endl;
         total_blocks = 0;
         return;
     }
 
-    total_blocks = index_size / sizeof(BlockIndexEntry);
+    total_blocks = index_size / entry_size;
     index_file.seekg(0, std::ios::beg);
 
-    //std::cout << "loadBlockIndex: total_blocks = " << total_blocks << std::endl;
+    std::cout << "loadBlockIndex: total_blocks = " << total_blocks << std::endl;
 }
 
 
+
 void DataManager::updateBlockIndex(uint64_t block_number, uint64_t block_offset) {
-    BlockIndexEntry entry = {block_number, block_offset};
-    index_file.seekp(block_number * sizeof(BlockIndexEntry));
+    index_file.seekp(block_number * (sizeof(uint64_t) * 2), std::ios::beg);
     if (index_file.fail()) {
-           std::cerr << "Error al hacer seekp en el archivo de índice en el bloque " << block_number << std::endl;
-           index_file.clear();
-           return;
-       }
-    
-    index_file.write(reinterpret_cast<const char*>(&entry), sizeof(BlockIndexEntry));
+        std::cerr << "Error al hacer seekp en el archivo de índice en el bloque " << block_number << std::endl;
+        index_file.clear();
+        return;
+    }
+
+    index_file.write(reinterpret_cast<const char*>(&block_number), sizeof(uint64_t));
     if (index_file.fail()) {
-           std::cerr << "Error al hacer seekp en el archivo de índice en el bloque " << block_number << std::endl;
-           index_file.clear();
-           return;
-       }
-    
+        std::cerr << "Error al escribir block_number en el archivo de índice en el bloque " << block_number << std::endl;
+        index_file.clear();
+        return;
+    }
+
+    index_file.write(reinterpret_cast<const char*>(&block_offset), sizeof(uint64_t));
+    if (index_file.fail()) {
+        std::cerr << "Error al escribir block_offset en el archivo de índice en el bloque " << block_number << std::endl;
+        index_file.clear();
+        return;
+    }
+
     index_file.flush();
     if (index_file.fail()) {
-            std::cerr << "Error al hacer flush del archivo de índice después de escribir el bloque " << block_number << std::endl;
-            index_file.clear();
-            return;
-        }
-    
-    total_blocks = std::max(total_blocks, static_cast<uint64_t>(    block_number) + 1);
+        std::cerr << "Error al hacer flush del archivo de índice después de escribir el bloque " << block_number << std::endl;
+        index_file.clear();
+        return;
+    }
 
-    
-    //cout<<"Actualiazando indice, block_number: "<<block_number<<", block offset "<<block_offset<<", total_blocks: "<<total_blocks <<endl;
+    total_blocks = std::max(total_blocks, block_number + 1);
+
+    std::cout << "Actualizando índice, block_number: " << block_number << ", block_offset: " << block_offset << ", total_blocks: " << total_blocks << std::endl;
 }

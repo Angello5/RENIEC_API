@@ -22,7 +22,7 @@ using namespace std;
 const uint32_t DNI_MIN = 10000000;
 const uint32_t DNI_MAX = 42999999;
 const uint32_t TOTAL_DNIS = DNI_MAX - DNI_MIN + 1;
-const uint64_t PRIME = 100000007;
+//const uint64_t PRIME = 100000007;
 const uint32_t BLOCK_SIZE = 1 *1024 * 1024;   //1mb
 const uint32_t AVERAGE_RECORD_SIZE = 200;
 const uint32_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
@@ -76,7 +76,7 @@ uint32_t permuteDNI(uint32_t x){
         return x;
 }
 // Función para generar un DNI aleatorio
-uint32_t generarDni(uint64_t index) {
+/*uint32_t generarDni(uint64_t index) {
     if (index >= TOTAL_DNIS) {
             throw std::runtime_error("No se pueden generar más DNIs únicos.");
         }
@@ -84,7 +84,7 @@ uint32_t generarDni(uint64_t index) {
         uint32_t dni = DNI_MIN + permuted % TOTAL_DNIS;
         return dni;
 }
-
+*/
 // Generador de números de Telefono
 string generarPhone() {
     string phone = "9";
@@ -163,9 +163,6 @@ uint32_t generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t
             cout << "Progreso: " << (i + 1) << " registros generados." << endl;
         }
     }
-
-    // Guardar el árbol B* si es persistente (opcional)
-    // ...
 
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> duration = end - start;
@@ -350,7 +347,7 @@ void mostrarMenu( ){
         <<"1. Insertar Usuario\n"
         <<"2. Buscar Usuario\n"
         <<"3. Eliminar Usuario\n"
-        <<"4. Imprimir los primeros 10 registros\n"
+        <<"4. Imprimir 10 registros\n"
         <<"5. Exit\n"
         <<"Elige tu opcion: ";
 }
@@ -367,10 +364,10 @@ int main() {
         DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
         
         
-        //uint64_t num_personas = 1000; // para probar 1k
-        //uint64_t num_personas = 10000;   //para probar 10k
+        //size_t num_personas = 200; // para probar 1k
+        uint64_t num_personas = 10000;   //para probar 10k
         //uint64_t num_personas = 100000; // para probar 100k
-        uint64_t num_personas = 1000000; // para probar 1 millon
+        //uint64_t num_personas = 1000000; // para probar 1 millon
         //uint64_t num_personas = 10000000; // para probar 10 millones
         //uint64_t num_personas = 33000000; // para probar 33 millones
         
