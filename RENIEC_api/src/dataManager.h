@@ -34,7 +34,7 @@ private:
 
 class DataManager {
 public:
-    DataManager(const std::string& data_filename, const std::string& index_filename, uint32_t records_per_block);
+    DataManager(const std::string& data_filename, const std::string& index_filename, uint32_t max_records_per_page = 500000);
     ~DataManager();
 
     //bool file_existe(const string& filename);
@@ -43,10 +43,11 @@ public:
     void updatePerson(uint64_t block_number, uint32_t record_offset_within_block, const Person& person);
     uint64_t getTotalBlocks() const;
     bool loadBlock(uint64_t block_number, std::vector<Person>& records);
+    void printBlockIndex();
 private:
     fstream data_file;
     string data_filename;
-    uint32_t records_per_block;
+    uint32_t max_records_per_page;
     uint64_t block_number;
     vector<Person> block_records;
     fstream index_file;
@@ -59,6 +60,7 @@ private:
     uint64_t getBlockOffset(uint64_t block_number);
     void loadBlockIndex();
     void updateBlockIndex(uint64_t block_number, uint64_t block_offset);
+  
 };
 
 #endif // DATAMANAGER_H

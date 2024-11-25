@@ -231,14 +231,18 @@ bool DataManager::loadBlock(uint64_t block_number, std::vector<Person>& records)
 
 bool DataManager::readPerson(uint64_t block_number, uint32_t record_offset_within_block, Person& person) {
     std::vector<Person> records;
-    loadBlock(block_number, records);
-
-    if (record_offset_within_block < records.size()) {
-        person = records[record_offset_within_block];
-        return true;
-    } else {
+    if (!loadBlock(block_number, records)) {
         return false;
     }
+    
+    if(record_offset_within_block >= records.size()){
+        cerr<<"Record offset: " <<record_offset_within_block<< "fuera de rango de block " <<block_number<<endl;
+    }
+    
+    person = records[record_offset_within_block];
+    
+
+        return true;
 }
 
 void DataManager::updatePerson(uint64_t block_number, uint32_t record_offset_within_block, const Person& person) {
@@ -334,4 +338,29 @@ void DataManager::updateBlockIndex(uint64_t block_number, uint64_t block_offset)
     total_blocks = std::max(total_blocks, block_number + 1);
 
     std::cout << "Actualizando índice, block_number: " << block_number << ", block_offset: " << block_offset << ", total_blocks: " << total_blocks << std::endl;
+}
+
+void DataManager::printBlockIndex() {
+    index_file.seekg(0, std::ios::beg);
+        for (uint64_t bn = 0; bn < total_blocks; ++bn) {
+            uint64_t stored_block_number;
+            index_file.read(reinterpret_cast<char*>(&stored_block_number), sizeof(uint64_t));
+            if (index_file.fail()) {
+                std::cerr << "Error al leer block_number en block " << bn << std::endl;
+                break;
+            }
+
+            uint64_t block_offset;
+            index_file.read(reinterpret_cast<char*>(&block_offset), sizeof(uint64_t));
+            if (index_file.fail()) {
+                std::cerr << "Error al leer block_offset en block " << bn << std::endl;
+                break;
+            }
+
+            if (stored_block_number != bn) {
+                std::cerr << "Inconsistencia en block_index.bin: block_number esperado " << bn << ", encontrado " << stored_block_number << std::endl;
+            }
+
+            std::cout << "Block Number: " << bn << " -> Offset: " << block_offset << std::endl;
+        }
 }

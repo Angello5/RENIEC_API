@@ -87,12 +87,12 @@ bool PageManager::writePage(uint32_t page_id, const Page& page) {
     }
 
 void PageManager::savePageIndex(){
-    ofstream index_file("data/page_index.bin", ios::binary);
+    ofstream index_file("/Users/angellollerena/Documents/EDA-trabajoFinal/RENIEC_api/RENIEC_api/data/page_index.bin", ios::binary);
     boost::archive::binary_oarchive oa(index_file);
     oa <<page_offsets;
 }
 void PageManager::loadPageIndex(){
-    ifstream index_file("page_index.bin", ios::binary);
+    ifstream index_file("/Users/angellollerena/Documents/EDA-trabajoFinal/RENIEC_api/RENIEC_api/data/page_index.bin", ios::binary);
     if (index_file) {
         boost::archive::binary_iarchive ia(index_file);
         ia>>page_offsets;
@@ -103,3 +103,5 @@ void PageManager::loadPageIndex(){
         }
     }
 }
+
+

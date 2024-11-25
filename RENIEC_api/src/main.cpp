@@ -2,7 +2,6 @@
 #include "btree*.h"
 #include "bufferPool.h"
 #include "dataManager.h"
-#include "btree*.h"
 
 #include <iostream>
 #include <fstream>
@@ -22,12 +21,11 @@ using namespace std;
 const uint32_t DNI_MIN = 10000000;
 const uint32_t DNI_MAX = 42999999;
 const uint32_t TOTAL_DNIS = DNI_MAX - DNI_MIN + 1;
-//const uint64_t PRIME = 100000007;
 const uint32_t BLOCK_SIZE = 1 *1024 * 1024;   //1mb
 const uint32_t AVERAGE_RECORD_SIZE = 200;
-const uint32_t RECORDS_PER_BLOCK = BLOCK_SIZE / AVERAGE_RECORD_SIZE;
-const string DATA_FILENAME = "data/user.bin";
-const string INDEX_FILENAME = "data/block_index.bin";
+const uint32_t RECORDS_PER_PAGE = 500000;
+const string DATA_FILENAME = "/Users/angellollerena/Documents/EDA-trabajoFinal/RENIEC_api/RENIEC_api/data/user.bin";
+const string INDEX_FILENAME = "/Users/angellollerena/Documents/EDA-trabajoFinal/RENIEC_api/RENIEC_api/data/block_index.bin";
 
 const vector<string> names = {
     "Juan", "María", "Pedro", "Luis"
@@ -97,7 +95,7 @@ string generarPhone() {
 
 // Generador de números de emails
 string generarEmail(const string& name) {
-    vector<string> dominios = { "gmail.com","outlook.com", "@usil.pe" };
+    vector<string> dominios = { "gmail.com","outlook.com", "usil.pe" };
     string dominio = dominios[rand() % dominios.size()];
     return  + "@" + dominio;
 }
@@ -132,7 +130,7 @@ Person generarPersona() {
 }
 
 // Función para generar datos masivos y cargarlos en el sistema
-uint32_t generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t num_personas) {
+void generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t num_personas) {
     cout << "Generando y cargando datos..." << endl;
     auto start = chrono::high_resolution_clock::now();
     
@@ -147,8 +145,6 @@ uint32_t generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t
         std::random_device rd;
         std::mt19937 gen(rd());
         std::shuffle(dni_list.begin(), dni_list.end(), gen);
-    
-    uint32_t dni_prueba = 0;
     
     for (uint64_t i = 0; i < num_personas; ++i) {
         Person persona = generarPersona();
@@ -168,14 +164,14 @@ uint32_t generateAndLoadData(BStarTree& tree, DataManager& dataManager, uint64_t
     chrono::duration<double> duration = end - start;
     cout << "Generación y carga completadas en " << duration.count() << " segundos.\n";
     
-    return dni_prueba;
+    return;
 }
 
 void printUser(const Person* persona) {
     if (persona) {
         std::cout << "\nDNI: " << persona->dni << "\n"
             << "Nombre: " << persona->name << "\n"
-            << "Apellido:: " << persona->surname << "\n"
+            << "Apellido: " << persona->surname << "\n"
             << "Nacionalidad: " << persona->birthplace.nationality << "\n"
             << "Lugar de Nacimiento: " << persona->birthplace.birthplace << "\n"
             << "Departamento: " << persona->address.departamento << "\n"
@@ -337,9 +333,13 @@ void imprimirPrimerosRegistros(DataManager& dataManager) {
 bool dataExiste() {
     std::ifstream dataFile(DATA_FILENAME);
        std::ifstream indexFile(INDEX_FILENAME);
-       std::ifstream treePagesFile("data/tree_pages.bin");
-       std::ifstream rootFile("data/btree_root.bin");
+       std::ifstream treePagesFile("/Users/angellollerena/Documents/EDA-trabajoFinal/RENIEC_api/RENIEC_api/data/tree_pages.bin");
+       std::ifstream rootFile("/Users/angellollerena/Documents/EDA-trabajoFinal/RENIEC_api/RENIEC_api/data/btree_root.bin");
        return dataFile.good() && indexFile.good() && treePagesFile.good() && rootFile.good();
+}
+void verificaIndices(DataManager&  data_manager, PageManager& page_manager){
+    cout<<"Verificacion de indices: "<<endl;
+    data_manager.printBlockIndex();
 }
 
 void mostrarMenu( ){
@@ -348,7 +348,8 @@ void mostrarMenu( ){
         <<"2. Buscar Usuario\n"
         <<"3. Eliminar Usuario\n"
         <<"4. Imprimir 10 registros\n"
-        <<"5. Exit\n"
+        <<"5. Verifica indices\n"
+        <<"6. Exit\n"
         <<"Elige tu opcion: ";
 }
 
@@ -356,20 +357,20 @@ int main() {
     try{
         srand(static_cast<unsigned int>(time(0)));
         
-        PageManager page_manager("/Users/angellollerena/Documents/EDA-trabajofinal/RENIEC_api/RENIEC_api/data/tree_pages.bin");
+        PageManager page_manager("/Users/angellollerena/Documents/EDA-trabajoFinal/RENIEC_api/RENIEC_api/data/tree_pages.bin");
         BufferPool buffer_pool(100, page_manager);   //tamano 100 paginas
         
         BStarTree btree(buffer_pool);
         
-        DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_BLOCK);
+        DataManager data_manager(DATA_FILENAME,INDEX_FILENAME,RECORDS_PER_PAGE);
         
         
         size_t num_personas = 1000; // para probar 1k
-        //uint64_t num_personas = 10000;   //para probar 10k
-        //uint64_t num_personas = 100000; // para probar 100k
-        //uint64_t num_personas = 1000000; // para probar 1 millon
-        //uint64_t num_personas = 10000000; // para probar 10 millones
-        //uint64_t num_personas = 33000000; // para probar 33 millones
+        //size_t num_personas = 10000;   //para probar 10k
+        //size_t num_personas = 100000; // para probar 100k
+        //size_t num_personas = 1000000; // para probar 1 millon
+        //size_t num_personas = 10000000; // para probar 10 millones
+        //size_t num_personas = 33000000; // para probar 33 millones
         
         
         if(!dataExiste()){
@@ -421,13 +422,16 @@ int main() {
                     imprimirPrimerosRegistros(data_manager);
                     break;
                 case 5:
-                    cout<<"Salida... \n"<<endl;
+                    verificaIndices(data_manager, page_manager);
+                    break;
+                case 6:
+                    cout<<"Salida...\n"<<endl;
                     break;
                 default:
                     cout<<"Eleccion invalida, por favor intente de nuevo. \n";
                     break;
             }
-        } while (opcion != 5);
+        } while (opcion != 6);
         
         return 0;
         
